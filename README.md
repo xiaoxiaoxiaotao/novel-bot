@@ -94,3 +94,8 @@ workspace/          # [Auto-Generated] Novel Data Storage (Git Ignored)
   STORY_SUMMARY.md  # Full Story Plot Summary
   memory/           # Automatically Managed Memory System
 ```
+
+## Acknowledgements
+
+- Portions of this project were inspired by and adapt code from [nanobot](https://github.com/HKUDS/nanobot.git).
+

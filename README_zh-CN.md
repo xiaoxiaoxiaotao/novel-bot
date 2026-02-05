@@ -94,3 +94,8 @@ workspace/          # [自动生成] 小说的数据存储位置 (Git 忽略)
   STORY_SUMMARY.md  # 全书剧情梗概
   memory/           # 自动管理的记忆系统
 ```
+
+## 致谢
+
+- 本项目的部分代码参考和借鉴了 [nanobot](https://github.com/HKUDS/nanobot.git) 项目。
+
