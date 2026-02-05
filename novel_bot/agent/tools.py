@@ -1,0 +1,140 @@
+from typing import Callable, Any, Dict, List
+import json
+import inspect
+from loguru import logger
+from novel_bot.agent.memory import MemoryStore
+
+class ToolRegistry:
+    def __init__(self, memory: MemoryStore):
+        self.memory = memory
+        self.tools: Dict[str, Callable] = {}
+        self.schemas: List[Dict] = []
+        self._register_defaults()
+
+    def register(self, func: Callable):
+        self.tools[func.__name__] = func
+        # Generate JSON schema for the function (simplified)
+        # In a real app, use Pydantic or docstring parsing
+        # Here we manually define schemas for the known defaults for simplicity
+        # or implement a helper. 
+        # For this stage, I will manually clear and rebuild schemas or just hardcode the known ones.
+        return func
+
+    def _register_defaults(self):
+        # We define schemas manually here to ensure OpenAI compatibility perfection
+        
+        self.tools["read_file"] = self.memory.read
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": "Read the content of a file from the workspace.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "filename": {"type": "string", "description": "The path to the file (e.g. 'MEMO.md', 'drafts/ch1.md')"}
+                    },
+                    "required": ["filename"]
+                }
+            }
+        })
+
+        self.tools["write_file"] = self.memory.write
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "write_file",
+                "description": "Write content to a file. Overwrites if exists.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "filename": {"type": "string", "description": "File path"},
+                        "content": {"type": "string", "description": "Full content to write"}
+                    },
+                    "required": ["filename", "content"]
+                }
+            }
+        })
+
+        self.tools["list_files"] = self.memory.list_files
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "list_files",
+                "description": "List markdown files in the workspace.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                         "pattern": {"type": "string", "description": "Glob pattern (default *.md)"}
+                    }
+                }
+            }
+        })
+        
+        # Helper for appending to lists (like summary or characters)
+        self.tools["append_file"] = self.memory.append
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "append_file",
+                "description": "Append text to a file.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "filename": {"type": "string"},
+                        "content": {"type": "string"}
+                    },
+                    "required": ["filename", "content"]
+                }
+            }
+        })
+        
+        # New Memory Tools
+        self.tools["memorize_chapter_event"] = self.memory.save_chapter_memory
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "memorize_chapter_event",
+                "description": "Save a DETAILED SUMMARY of a chapter to memory. Do NOT save full text.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "chapter_title": {"type": "string", "description": "e.g. 'Chapter 03'"},
+                        "content": {"type": "string", "description": "Detailed bullet points of plot events, item acquisition, and character status changes."}
+                    },
+                    "required": ["chapter_title", "content"]
+                }
+            }
+        })
+        
+        self.tools["memorize_important_fact"] = self.memory.update_global_memory
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "memorize_important_fact",
+                "description": "Add an important fact to long-term memory (MEMORY.md).",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "content": {"type": "string", "description": "The fact to remember."}
+                    },
+                    "required": ["content"]
+                }
+            }
+        })
+
+    async def execute(self, tool_call: Any) -> str:
+        name = tool_call.function.name
+        args = json.loads(tool_call.function.arguments)
+        
+        if name in self.tools:
+            logger.info(f"Executing tool: {name} with args: {args}")
+            try:
+                # Some tools might be async if we add network later, but file ops are sync here
+                # We can make them async if needed.
+                result = self.tools[name](**args)
+                return str(result)
+            except Exception as e:
+                logger.error(f"Tool execution failed: {e}")
+                return f"Error: {e}"
+        return f"Error: Tool {name} not found."
