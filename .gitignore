@@ -1,7 +1,8 @@
-.env
-
-story_output.json
 __pycache__/
-*.pyc 
-
-output/ 
+*.pyc
+.env
+.DS_Store
+workspace/
+nanobot/
+output/
+drafts/
