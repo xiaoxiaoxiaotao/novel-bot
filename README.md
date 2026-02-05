@@ -1,133 +1,94 @@
-# 智能小说创作助手
+# Novel AI Agent (Refactored)
 
-一个基于大型语言模型的智能小说创作工具，支持多种AI模型，能够自动生成完整的小说内容。
+这是一个吸收了智能小说写作 Agent。它采用 "Filesystem as Memory"（文件即记忆）的设计理念，通过持续的 Agent Loop 与用户交互，能够维护长篇小说的连贯性。
 
-## 目录
+## 核心特性
 
-- [功能特点](#功能特点)
-- [安装说明](#安装说明)
-- [使用方法](#使用方法)
-- [输出说明](#输出说明)
-- [项目结构](#项目结构)
-- [自定义开发](#自定义开发)
-- [注意事项](#注意事项)
-- [许可证](#许可证)
-- [贡献指南](#贡献指南)
-- [更新日志](#更新日志)
-- [联系方式](#联系方式)
+- **Agent 架构**：不再是线性的脚本，而是一个会思考、会自省的持续运行进程。
+- **文件即数据库**：所有的记忆（Memory）、人设（Soul）、设定（World）都以 Markdown 文件直接存储在 `workspace/` 中，方便用户随时人工干预和修改。
+- **双重记忆系统**：
+    - **长期记忆 (Global Memory)**：记录世界观变迁、重要剧情节点 (`memory/MEMORY.md`)。
+    - **短期记忆 (Chapter Memory)**：记录最近章节的详细摘要 (`memory/chapters/`)，防止上下文超长。
+- **OpenAI 兼容性**：支持兼容 OpenAI 接口的模型。
 
-## 功能特点
+## 部署安装
 
-- 支持多种AI模型（浦语、智谱）
-- 自动生成故事主题和核心思想
-- 创建多维度的人物角色（包括主角、反派和配角）
-- 生成详细的故事大纲
-- 自动生成富有诗意的章节标题
-- 分段生成完整的故事内容
-- 自动保存JSON和TXT格式的输出
+### 1. 环境准备
 
-## 安装说明
-
-### 步骤1: 克隆项目
+确保你的 Python 版本 >= 3.10。
 
 ```bash
 git clone https://github.com/xiaoxiaoxiaotao/novel-ai-agent-Chinese.git
-cd novel_ai_agent
+cd novel-ai-agent-Chinese
+git checkout develop
 ```
 
-### 步骤2: 安装依赖
+### 2. 安装依赖
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-### 步骤3: 配置API密钥
+### 3. 配置模型
 
-复制`.env.example`为`.env`并在其中填入你的API密钥：
+在项目根目录创建 `.env` 文件，填入你的 API Key 和 Base URL（可以参考.env.example文件）。
 
-#### 浦语模型配置
+作者使用的是https://build.nvidia.com/上的api，采用的moonshotai/kimi-k2.5模型。
 
-```plaintext
-PUYU_API_KEY=your_puyu_api_key
-PUYU_BASE_URL=your_puyu_base_url
-```
-
-#### 智谱AI配置
-
-```plaintext
-GLM_API_KEY=your_glm_api_key
-GLM_BASE_URL=your_glm_base_url
+```env
+NVIDIA_API_KEY=your_nvidia_api_key_here
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+MODEL_NAME=moonshotai/kimi-k2.5
 ```
 
 ## 使用方法
 
-- **使用浦语模型创作故事**
+### 1. 初始化工作区
 
-  ```bash
-  python story_creation_example.py --model puyu
-  ```
+首次运行时，需要初始化工作区。这将创建 `workspace` 目录和必要的设定文件（SOUL.md, WORLD.md 等）。
 
-- **使用智谱模型创作故事**
-
-  ```bash
-  python story_creation_example.py --model glm
-  ```
-
-## 输出说明
-
-程序会在`output`目录下生成两个文件：
-
-1. **JSON文件（`story_output_{model_type}_{timestamp}.json`）**：
-   - 包含完整的故事元数据，如主题、角色设定、大纲等。
-
-2. **TXT文件（`story_{model_type}_{timestamp}.txt`）**：
-   - 包含可读的故事内容，包括章节标题和正文。
-
-## 项目结构
-
-```
-novel_ai_agent/
-├── src/
-│ ├── __init__.py
-│ ├── agent.py # AI代理核心逻辑
-│ └── prompts.py # 提示词模板
-├── output/ # 输出文件目录
-├── .env # 环境配置文件
-├── .gitignore # Git忽略文件
-├── requirements.txt # 项目依赖
-├── README.md # 项目说明
-└── story_creation_example.py # 示例脚本
+```bash
+python -m novel_bot init
 ```
 
-## 自定义开发
+*提示：你可以直接编辑 `workspace/` 下的 Markdown 文件来修改 AI 的人设或小说的大纲。*
 
-- **修改提示词**：编辑`src/prompts.py`中的提示词模板以调整故事风格、长度等参数。
-- **调整输出格式**：修改`story_creation_example.py`中的输出处理逻辑来自定义输出文件的格式和内容。
-- **添加新的模型支持**：在`src/agent.py`中扩展`NovelAIAgent`类并添加新的API调用方式。
+### 2. 启动 Agent
 
-## 注意事项
+启动交互式写作界面：
 
-- 确保API密钥有效且有足够的配额。
-- 生成的内容可能需要人工审核。
-- 建议保留生成的JSON文件以便后续修改。
-- 注意遵守API使用条款和版权规定。
+```bash
+python -m novel_bot start
+```
 
-## 许可证
+### 3. 交互示例
 
-本项目采用MIT License许可协议。详情参见[LICENSE](LICENSE)文件。
+在终端中作为 "Editor" (编辑) 指挥 Agent 写作：
 
-## 贡献指南
+```text
+Editor > 我想撰写一个末日丧尸视角下的故事，人类可以觉醒异能，请你为小说撰写一些人物、风格、情节的设定，生成世界观和大纲。
 
-欢迎提交Issue和Pull Request来改进项目。
+Thinking...
+Agent: [生成了...]
 
-## 更新日志
+Editor > 很好，现在开始写第一章的正文，注意描写环境的阴冷。
 
-### v1.0.0 (2025-01-01)
+Thinking...
+Agent: [生成正文并保存到文件]
+```
 
-- 初始版本发布。
-- 支持浦语和智谱AI模型。
-- 实现基本的故事生成功能。
+## 目录结构
 
-## 联系方式
-
-如有问题或建议，请提交Issue或联系开发者。
+```text
+novel_bot/          # 核心代码
+  agent/            # Agent 逻辑 (Loop, Memory, Tools)
+  cli/              # 命令行入口
+  config/           # 配置加载
+workspace/          # [自动生成] 小说的数据存储位置 (Git 忽略)
+  drafts/           # 小说正文草稿 (e.g. drafts/chapter_01.md)
+  SOUL.md           # AI 的人设/写作风格
+  WORLD.md          # 世界观设定
+  CHARACTERS.md     # 角色卡
+  STORY_SUMMARY.md  # 全书剧情梗概
+  memory/           # 自动管理的记忆系统
+```
