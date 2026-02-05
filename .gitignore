@@ -1,8 +1,7 @@
 .env
+
 story_output.json
 __pycache__/
 *.pyc 
-# 输出文件夹
+
 output/ 
-# 提示词文件（如果需要保密）
-story_prompts.txt 
