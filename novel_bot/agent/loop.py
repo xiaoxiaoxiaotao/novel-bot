@@ -53,15 +53,20 @@ class AgentLoop:
         console.print("[dim]Thinking...[/dim]")
         
         try:
-            response = await self.provider.chat(messages, tools=self.tools.schemas)
+            # Main Agent Loop (Autonomous Tool Chaining)
+            current_response = await self.provider.chat(messages, tools=self.tools.schemas)
             
-            # 4. Handle Response
-            if response.tool_calls:
+            MAX_LOOPS = 10
+            loop_count = 0
+            
+            while current_response.tool_calls and loop_count < MAX_LOOPS:
+                loop_count += 1
+                
                 # Add the assistant's tool call message to history
-                self.history.append(response)
-                messages.append(response)
+                self.history.append(current_response)
+                messages.append(current_response)
 
-                for tool_call in response.tool_calls:
+                for tool_call in current_response.tool_calls:
                     console.print(f"[cyan]Using Tool: {tool_call.function.name}[/cyan]")
                     result = await self.tools.execute(tool_call)
                     
@@ -74,20 +79,12 @@ class AgentLoop:
                     self.history.append(tool_msg)
                     messages.append(tool_msg)
 
-                # Follow up after tool use (Get final answer)
-                final_response = await self.provider.chat(messages, tools=self.tools.schemas)
-                
-                # Check for recursive tool calls? For now, just 1 level of recursion or handle it?
-                # A simple loop handles multiple tool calls until text is produced.
-                # But here we just did one round trip. 
-                # Let's support one more recursion automatically if needed, or simply output.
-                # If the final_response has tool calls again, this simplified loop won't handle it.
-                # Ideally process_turn should be a while loop.
-                
-                await self._handle_final_response(final_response)
-
-            else:
-                await self._handle_final_response(response)
+                # Follow up (Get next thought/action)
+                console.print("[dim]Thinking...[/dim]")
+                current_response = await self.provider.chat(messages, tools=self.tools.schemas)
+            
+            # Final text response
+            await self._handle_final_response(current_response)
 
         except Exception as e:
             logger.error(f"Loop Error: {e}")
