@@ -1,9 +1,11 @@
 from novel_bot.agent.memory import MemoryStore
+from novel_bot.agent.skills import SkillsLoader
 from loguru import logger
 
 class ContextBuilder:
     def __init__(self, memory_store: MemoryStore):
         self.memory = memory_store
+        self.skills = SkillsLoader(memory_store.workspace)
 
     def build_system_prompt(self) -> str:
         # Load core files
@@ -46,6 +48,24 @@ class ContextBuilder:
         summary = self.memory.read("STORY_SUMMARY.md")
         if summary:
             prompt_parts.append(f"\n## STORY SO FAR\n{summary}")
+
+        # Skills - progressive loading
+        # 1. Always-loaded skills: include full content
+        always_skills = self.skills.get_always_skills()
+        if always_skills:
+            always_content = self.skills.load_skills_for_context(always_skills)
+            if always_content:
+                prompt_parts.append(f"\n## ACTIVE SKILLS\n{always_content}")
+        
+        # 2. Available skills: only show summary
+        skills_summary = self.skills.build_skills_summary()
+        if skills_summary:
+            prompt_parts.append(f"""\n## AVAILABLE SKILLS
+
+The following skills extend your capabilities. To use a skill, read its SKILL.md file using the read_file tool.
+Skills with available="false" need dependencies installed first.
+
+{skills_summary}""")
 
         prompt_parts.append("\n## INSTRUCTIONS")
         prompt_parts.append("1. Always stay in character as defined in SOUL.md")
