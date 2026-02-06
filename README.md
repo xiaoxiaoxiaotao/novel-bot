@@ -22,7 +22,6 @@ Ensure your Python version is >= 3.10.
 ```bash
 git clone https://github.com/xiaoxiaoxiaotao/novel-bot.git
 cd novel-bot
-git checkout develop
 ```
 
 ### 2. Install Dependencies

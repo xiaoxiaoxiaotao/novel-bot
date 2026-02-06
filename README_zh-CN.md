@@ -22,7 +22,6 @@
 ```bash
 git clone https://github.com/xiaoxiaoxiaotao/novel-bot.git
 cd novel-bot
-git checkout develop
 ```
 
 ### 2. 安装依赖
