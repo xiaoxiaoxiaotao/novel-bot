@@ -28,12 +28,12 @@ def init(
     (target / "drafts").mkdir(exist_ok=True)
     
     defaults = {
-        "SOUL.md": "You are a pragmatic, detail-oriented novelist. You value 'Show, Don't Tell'.\nYou avoid clichés and purple prose.",
-        "USER.md": "User wants to write a fantasy novel about a mage who can't cast spells but can enchant items.",
-        "TONE.md": "- Serious but with dark humor.\n- High fantasy setting.\n- Focus on the mechanics of magic.",
-        "CHARACTERS.md": "# Main Character\nName: Kael\nAge: 24\nRole: Enchanter\n\n# Antagonist\nName: Voren\nRole: Archmage",
-        "WORLD.md": "The world of Aethelgard. Magic is fading.",
-        "STORY_SUMMARY.md": "No chapters written yet.",
+        "SOUL.md": "No AI persona has been defined yet.",
+        "USER.md": "No user writing intentions have been recorded yet.",
+        "TONE.md": "No story style or tone has been set yet.",
+        "CHARACTERS.md": "No characters have been created yet.",
+        "WORLD.md": "No world-building has been done yet.",
+        "STORY_SUMMARY.md": "No chapters have been written yet.",
     }
 
     for filename, content in defaults.items():
