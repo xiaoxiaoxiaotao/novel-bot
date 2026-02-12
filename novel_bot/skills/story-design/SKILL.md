@@ -1,0 +1,255 @@
+```skill
+---
+name: story-design
+description: Comprehensive story planning and design skill. Use when starting a new novel, when the user wants to plan the overall story structure, or when current settings feel insufficient and need expansion. Guides through scope definition, plot planning, world-building, character design, and writing style establishment.
+---
+
+# Story Design Skill
+
+This skill guides comprehensive novel planning from concept to detailed blueprint. Use this when the user wants to start a new story, or when the current story design feels incomplete.
+
+## When to Use
+
+- Starting a brand new novel project
+- User says the story feels "directionless" or "lacking depth"
+- Need to establish or revise core story elements
+- Current world-building or character development feels insufficient
+
+## Phase 1: Scope & Requirements Gathering
+
+**CRITICAL**: Before any creative work, gather these requirements from the user:
+
+### 1.1 Word Count & Scope
+Ask the user to specify:
+- **Chapter length**: e.g., 2000-3000 words per chapter
+- **Total chapters**: e.g., 500 chapters for a epic, 30 for a novella
+- **Total estimated word count**: Calculate and confirm
+- **Publishing format**: Web serial, traditional novel, anthology, etc.
+
+### 1.2 Genre & Tone
+- **Primary genre**: Fantasy, Sci-Fi, Romance, Mystery, Thriller, etc.
+- **Sub-genres**: Dark fantasy, cozy mystery, hard sci-fi, etc.
+- **Target audience**: YA, Adult, Middle Grade
+- **Overall tone**: Dark/gritty, lighthearted, epic, intimate, humorous
+
+Save these to `STORY_SUMMARY.md` and `TONE.md`.
+
+## Phase 2: Core Story Architecture
+
+### 2.1 Main Plot Design (The Spine)
+
+Guide the user through defining:
+
+**Central Conflict**
+- What is the protagonist's ultimate goal?
+- What/who stands in their way? (Antagonist force)
+- What happens if they fail? (Stakes)
+
+**Core Conspiracy/Mystery** (if applicable)
+- What secret drives the plot?
+- Who knows the truth?
+- How is it gradually revealed?
+
+**Three-Act Structure Overview**
+```
+Act 1 (Setup ~25%):
+- Opening hook
+- Inciting incident
+- First plot point (point of no return)
+
+Act 2 (Confrontation ~50%):
+- Rising action with complications
+- Midpoint twist/escalation
+- Progressive complications leading to...
+
+Act 3 (Resolution ~25%):
+- Darkest moment
+- Climax confrontation
+- Resolution and aftermath
+```
+
+### 2.2 Subplot Design (The Ribs)
+
+Plan these supporting storylines:
+
+**Romance Arc** (if applicable)
+- Love interest introduction timing
+- Relationship development milestones
+- How romance complicates or aids main plot
+
+**Friendship/Ally Arcs**
+- Key companions and their roles
+- Betrayals and loyalties
+- Character growth through relationships
+
+**Mini-Boss / Arc Antagonists**
+- Each major section needs its own antagonist
+- How mini-bosses relate to the main villain
+- What the protagonist learns from each defeat/victory
+
+**Personal Growth Arc**
+- Protagonist's internal flaw
+- How external plot forces internal change
+- Transformation by the end
+
+Save plot outline to `OUTLINE.md` in the drafts folder.
+
+## Phase 3: World Building
+
+Use the **GRAPES+** method:
+
+### Geography
+- Physical landscape and climate
+- Important locations (cities, dungeons, wilderness)
+- How geography affects plot
+
+### Religion & Beliefs
+- Gods, spirits, or cosmic forces
+- Religious organizations and power
+- How belief systems create conflict
+
+### Achievements
+- Technology or magic level
+- Unique arts, crafts, or knowledge
+- What makes this world special
+
+### Politics
+- Government structures
+- Laws and enforcement
+- Factions and their conflicts
+
+### Economics
+- Currency and trade
+- Class systems and wealth distribution
+- Resources worth fighting over
+
+### Social Structure
+- Family and clan systems
+- Gender roles and customs
+- Taboos and traditions
+
+### + History (The Plus)
+- Major historical events that shaped the present
+- Ancient civilizations or lost knowledge
+- How past events echo in current plot
+
+Save to `WORLD.md`.
+
+## Phase 4: Character Design
+
+### 4.1 Protagonist
+
+```markdown
+# [Protagonist Name]
+- **Role**: Primary Protagonist
+- **Archetype**: [The Chosen One, The Reluctant Hero, etc.]
+- **External Goal**: [What they want to achieve]
+- **Internal Need**: [What they actually need to learn]
+- **Core Flaw**: [What's holding them back]
+- **Motivation**: [Why they can't give up]
+- **Character Arc**: [How they change from start to end]
+- **Voice**: [Speech patterns, vocabulary level, mannerisms]
+```
+
+### 4.2 Supporting Cast
+
+For each major character, define:
+- **Relationship to protagonist**: Ally, rival, mentor, love interest
+- **Their own goal**: What do they want independently?
+- **Secret or flaw**: What makes them interesting?
+- **Role in plot**: How do they advance the story?
+
+### 4.3 Antagonist(s)
+
+- **Motivation**: Why do they oppose the protagonist? (Make it understandable)
+- **Resources**: What power do they wield?
+- **Weakness**: How can they be defeated?
+- **Minions**: Who serves them and why?
+
+Save to `CHARACTERS.md`.
+
+## Phase 5: Writing Style Guide
+
+### 5.1 Narrative Style
+
+**Point of View**
+- First person (I/me) - intimate, limited
+- Third person limited (he/she, one character at a time)
+- Third person omniscient (knows all)
+- Multiple POV - which characters get chapters?
+
+**Tense**
+- Past tense (traditional)
+- Present tense (immediate, cinematic)
+
+### 5.2 Prose Characteristics
+
+Guide the user to define:
+
+**Description Level**
+- Minimal (action-focused)
+- Moderate (balanced)
+- Lush (atmospheric, sensory-rich)
+
+**Dialogue Style**
+- Realistic/Naturalistic (um, ah, interruptions)
+- Polished (clean, purposeful)
+- Stylized (accents, dialects, formal/informal markers)
+
+**Pacing Preference**
+- Fast-paced (short chapters, quick scenes)
+- Moderate (balanced scene/summary ratio)
+- Slow-burn (detailed, contemplative)
+
+**Language Register**
+- Simple/Accessible (shorter words, clear sentences)
+- Literary (complex structures, vocabulary)
+- Genre-appropriate (technical terms for sci-fi, archaic for fantasy)
+
+Save to `TONE.md` with examples.
+
+## Phase 6: Chapter-by-Chapter Blueprint
+
+Create a high-level chapter list:
+
+```markdown
+# Chapter Blueprint
+
+## Book 1: [Title]
+- Ch 1: [One-sentence summary]
+- Ch 2: [One-sentence summary]
+...
+
+## Book 2: [Title]
+...
+```
+
+Include for each chapter:
+- POV character
+- Main plot point advanced
+- Subplot developments
+- Location
+- Emotional tone
+
+Save to `OUTLINE.md`.
+
+## Workflow
+
+1. **Assess Current State**: Check existing files (SOUL.md, WORLD.md, CHARACTERS.md)
+2. **Identify Gaps**: What's missing or underdeveloped?
+3. **Guide User**: Ask targeted questions to fill gaps
+4. **Document**: Update relevant files with new decisions
+5. **Summarize**: Confirm the overall vision with the user
+
+## Success Criteria
+
+Before finishing, ensure:
+- [ ] Word count and scope defined
+- [ ] Main plot has clear goal, opposition, and stakes
+- [ ] At least 2-3 subplots identified
+- [ ] World has unique, plot-relevant elements
+- [ ] Protagonist has clear arc and flaw
+- [ ] Antagonist has understandable motivation
+- [ ] Writing style guidelines established
+- [ ] Chapter blueprint created
+```
