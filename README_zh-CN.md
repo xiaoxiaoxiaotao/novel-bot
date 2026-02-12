@@ -24,7 +24,19 @@ git clone https://github.com/xiaoxiaoxiaotao/novel-bot.git
 cd novel-bot
 ```
 
-### 2. 安装依赖
+### 2. 安装依赖（推荐：uv）
+
+**作者强烈推荐使用 [uv](https://github.com/astral-sh/uv) 进行依赖管理和运行。**
+
+```bash
+# 安装 uv（如未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 同步依赖（自动创建虚拟环境）
+uv sync
+```
+
+**备选：pip**
 
 ```bash
 python -m pip install -r requirements.txt
@@ -49,6 +61,10 @@ MODEL_NAME=moonshotai/kimi-k2.5
 首次运行时，需要初始化工作区。这将创建 `workspace` 目录和必要的设定文件（SOUL.md, WORLD.md 等）。
 
 ```bash
+# 使用 uv（推荐）
+uv run python -m novel_bot init
+
+# 或使用 pip
 python -m novel_bot init
 ```
 
@@ -59,6 +75,10 @@ python -m novel_bot init
 启动交互式写作界面：
 
 ```bash
+# 使用 uv（推荐）
+uv run python -m novel_bot start
+
+# 或使用 pip
 python -m novel_bot start
 ```
 

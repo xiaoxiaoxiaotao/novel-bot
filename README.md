@@ -24,7 +24,19 @@ git clone https://github.com/xiaoxiaoxiaotao/novel-bot.git
 cd novel-bot
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies (Recommended: uv)
+
+**The author highly recommends using [uv](https://github.com/astral-sh/uv) for dependency management and running.**
+
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sync dependencies (automatically creates venv)
+uv sync
+```
+
+**Alternative: pip**
 
 ```bash
 python -m pip install -r requirements.txt
@@ -49,6 +61,10 @@ MODEL_NAME=moonshotai/kimi-k2.5
 When running for the first time, you need to initialize the workspace. This will create the `workspace` directory and necessary setting files (SOUL.md, WORLD.md, etc.).
 
 ```bash
+# Using uv (recommended)
+uv run python -m novel_bot init
+
+# Or with pip
 python -m novel_bot init
 ```
 
@@ -59,6 +75,10 @@ python -m novel_bot init
 Launch the interactive writing interface:
 
 ```bash
+# Using uv (recommended)
+uv run python -m novel_bot start
+
+# Or with pip
 python -m novel_bot start
 ```
 
