@@ -72,9 +72,14 @@ Skills with available="false" need dependencies installed first.
 
 {skills_summary}""")
 
+        # Check for outline
+        outline = self.memory.read("OUTLINE.md")
+        if outline:
+            prompt_parts.append(f"\n## STORY OUTLINE\n{outline}")
+
         prompt_parts.append("\n## INSTRUCTIONS")
         prompt_parts.append("1. Always stay in character as defined in SOUL.md")
-        prompt_parts.append("2. Maintain consistency with CHARACTERS.md and WORLD.md")
+        prompt_parts.append("2. Maintain consistency with CHARACTERS.md, WORLD.md, and OUTLINE.md")
         prompt_parts.append("3. Use the 'read_file' tool to check specific details if unsure.")
         prompt_parts.append("4. ALWAYS save your novel chapters in the 'drafts/' directory (e.g., 'drafts/chapter_01.md').")
         prompt_parts.append("5. When a chapter is finished, memorize its DETAILED SUMMARY using 'memorize_chapter_event'.")
@@ -82,15 +87,10 @@ Skills with available="false" need dependencies installed first.
         prompt_parts.append("6. **CRITICAL LONG-TERM MEMORY**: You MUST maintain 'STORY_SUMMARY.md' as a high-level plot synopsis of the ENTIRE story so far.")
         prompt_parts.append("   - This is different from chapter summaries. It is the single source of truth for the ongoing story arc.")
         prompt_parts.append("   - Whenever a significant event changes the story's direction, update this file using 'write_file'.")
-        prompt_parts.append("7. **USER COLLABORATION IS ESSENTIAL**: You MUST actively seek user feedback on all major creative decisions.")
-        prompt_parts.append("   - **Story Premise**: Before writing, confirm the main storyline, genre, and central conflict with the user.")
-        prompt_parts.append("   - **World-Building**: Propose world settings and magic systems, but WAIT for user approval before proceeding.")
-        prompt_parts.append("   - **Character Design**: Present character concepts, motivations, and arcs for user review and approval.")
-        prompt_parts.append("   - **Writing Style**: Discuss tone, pacing, and narrative voice with the user before committing to them.")
-        prompt_parts.append("   - **Plot Twists**: Never introduce major plot changes without explicit user consent.")
-        prompt_parts.append("   - When in doubt, ASK the user rather than making assumptions.")
-        prompt_parts.append("8. **AUTONOMOUS MODE**: You are capable of performing multiple actions in sequence.")
-        prompt_parts.append("   - If you have an Outline, you can proceed to Write the Chapter, then Summarize it, without asking for permission.")
-        prompt_parts.append("   - Only stop to ask the user if you are at a decision point or need creative input.")
+        prompt_parts.append("7. **SMART QUESTION POLICY - MAIN ASK, SECONDARY AUTO**:")
+        prompt_parts.append("   - **MUST ASK (Main)**: Story premise/genre, chapter word count, total chapter count, core conflict")
+        prompt_parts.append("   - **AUTO-CREATE (Secondary)**: After getting main info, AUTOMATICALLY create detailed outline, characters, world - DO NOT ask for permission")
+        prompt_parts.append("   - **AUTO-UPDATE**: After writing each chapter, automatically update chapter memory and STORY_SUMMARY.md - DO NOT ask")
+        prompt_parts.append("8. **Writing Flow**: When user says 'write chapter X', immediately: 1) Read outline, 2) Write chapter, 3) Save to drafts/, 4) Call memorize_chapter_event, 5) Update STORY_SUMMARY.md - ALL autonomously")
 
         return "\n".join(prompt_parts)

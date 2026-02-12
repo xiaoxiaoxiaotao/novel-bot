@@ -34,6 +34,7 @@ def init(
         "CHARACTERS.md": "No characters have been created yet.",
         "WORLD.md": "No world-building has been done yet.",
         "STORY_SUMMARY.md": "No chapters have been written yet.",
+        "OUTLINE.md": "No story outline has been created yet.",
     }
 
     for filename, content in defaults.items():
