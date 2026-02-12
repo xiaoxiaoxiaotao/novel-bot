@@ -17,22 +17,19 @@ This skill guides comprehensive novel planning from concept to detailed blueprin
 
 ## Phase 1: Scope & Requirements Gathering
 
-**CRITICAL**: Before any creative work, gather these requirements from the user:
+**CRITICAL - MUST ASK USER**: Before any creative work, gather these requirements:
 
-### 1.1 Word Count & Scope
+### 1.1 Word Count & Scope (REQUIRED - ASK USER)
 Ask the user to specify:
 - **Chapter length**: e.g., 2000-3000 words per chapter
 - **Total chapters**: e.g., 500 chapters for a epic, 30 for a novella
 - **Total estimated word count**: Calculate and confirm
-- **Publishing format**: Web serial, traditional novel, anthology, etc.
 
-### 1.2 Genre & Tone
+### 1.2 Genre & Tone (REQUIRED - ASK USER)
 - **Primary genre**: Fantasy, Sci-Fi, Romance, Mystery, Thriller, etc.
-- **Sub-genres**: Dark fantasy, cozy mystery, hard sci-fi, etc.
-- **Target audience**: YA, Adult, Middle Grade
 - **Overall tone**: Dark/gritty, lighthearted, epic, intimate, humorous
 
-Save these to `STORY_SUMMARY.md` and `TONE.md`.
+**AFTER getting scope info, AUTOMATICALLY create all planning documents without asking.**
 
 ## Phase 2: Core Story Architecture
 
@@ -255,11 +252,14 @@ The workspace already contains predefined files for story information. You MUST 
 
 ## Workflow
 
-1. **Assess Current State**: Check existing files (SOUL.md, WORLD.md, CHARACTERS.md)
-2. **Identify Gaps**: What's missing or underdeveloped?
-3. **Guide User**: Ask targeted questions to fill gaps
-4. **Document**: Update relevant files with new decisions
-5. **Summarize**: Confirm the overall vision with the user
+1. **Assess Current State**: Check existing files (SOUL.md, WORLD.md, CHARACTERS.md, OUTLINE.md)
+2. **Ask Scope Questions**: Get word count per chapter and total chapters from user
+3. **AUTO-CREATE Planning Docs**: WITHOUT asking permission:
+   - Create OUTLINE.md with full chapter-by-chapter breakdown
+   - Create CHARACTERS.md with protagonist, supporting cast, antagonist
+   - Create WORLD.md with setting details
+   - Update TONE.md with style guidelines
+4. **Summarize**: Present the complete plan to user for approval
 
 ## Success Criteria
 
