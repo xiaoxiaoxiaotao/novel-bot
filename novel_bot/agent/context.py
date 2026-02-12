@@ -1,6 +1,9 @@
 from novel_bot.agent.memory import MemoryStore
 from novel_bot.agent.skills import SkillsLoader
 from loguru import logger
+from rich.console import Console
+
+console = Console()
 
 class ContextBuilder:
     def __init__(self, memory_store: MemoryStore):
@@ -53,6 +56,8 @@ class ContextBuilder:
         # 1. Always-loaded skills: include full content
         always_skills = self.skills.get_always_skills()
         if always_skills:
+            for skill_name in always_skills:
+                console.print(f"[dim]Loading skill: {skill_name}[/dim]")
             always_content = self.skills.load_skills_for_context(always_skills)
             if always_content:
                 prompt_parts.append(f"\n## ACTIVE SKILLS\n{always_content}")
