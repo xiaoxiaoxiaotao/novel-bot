@@ -245,11 +245,13 @@ After drafting, verify:
 ## Workflow
 
 1. **Review Context**: Read previous chapters and outline
-2. **Set Targets**: Confirm length and key events
-3. **Draft**: Write following scene-sequel structure
-4. **Self-Edit**: Run through revision checklist
-5. **Deliver**: Present to user for feedback
-6. **Revise**: Incorporate user input
+2. **Draft**: Write following scene-sequel structure
+3. **Self-Edit**: Run through revision checklist
+4. **AUTO-UPDATE Memory**: WITHOUT asking:
+   - Call `memorize_chapter_event` with detailed summary
+   - Update `STORY_SUMMARY.md` if plot advanced significantly
+5. **Deliver**: Present chapter to user
+6. **Revise**: Incorporate user input if any
 
 ## Quality Standards
 
