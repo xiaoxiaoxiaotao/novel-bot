@@ -7,10 +7,12 @@
 ## 核心特性
 
 - **Agent 架构**：不再是线性的脚本，而是一个会思考、会自省的持续运行进程。
+- **智能提问策略**：只询问核心问题（故事前提、字数、章节数），自动创建大纲、角色和世界观，无需逐项请示。
 - **文件即数据库**：所有的记忆（Memory）、人设（Soul）、设定（World）都以 Markdown 文件直接存储在 `workspace/` 中，方便用户随时人工干预和修改。
 - **双重记忆系统**：
     - **长期记忆 (Global Memory)**：记录世界观变迁、重要剧情节点 (`memory/MEMORY.md`)。
     - **短期记忆 (Chapter Memory)**：记录最近章节的详细摘要 (`memory/chapters/`)，防止上下文超长。
+    - **自动更新**：每写完一章后自动更新记忆，无需用户干预。
 - **OpenAI 兼容性**：支持兼容 OpenAI 接口的模型。
 
 ## 部署安装
@@ -105,13 +107,18 @@ novel_bot/          # 核心代码
   agent/            # Agent 逻辑 (Loop, Memory, Tools)
   cli/              # 命令行入口
   config/           # 配置加载
+  skills/           # 内置技能 (story-design, chapter-writer 等)
 workspace/          # [自动生成] 小说的数据存储位置 (Git 忽略)
   drafts/           # 小说正文草稿 (e.g. drafts/chapter_01.md)
   SOUL.md           # AI 的人设/写作风格
+  TONE.md           # 写作语气和文风指南
   WORLD.md          # 世界观设定
   CHARACTERS.md     # 角色卡
+  OUTLINE.md        # 分章节故事大纲
   STORY_SUMMARY.md  # 全书剧情梗概
   memory/           # 自动管理的记忆系统
+    MEMORY.md       # 全局长期记忆
+    chapters/       # 各章节摘要
 ```
 
 ## 致谢

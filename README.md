@@ -7,10 +7,12 @@ An intelligent novel writing agent powered by LLMs. It adopts the "Filesystem as
 ## Key Features
 
 - **Agent Architecture**: Not just a linear script, but a continuous process capable of thinking and self-reflection.
+- **Smart Question Policy**: Only asks essential questions (story premise, word count, chapter count). Automatically creates outlines, characters, and world-building without permission.
 - **Filesystem as Database**: All Memory, Persona (Soul), and Settings (World) are stored directly as Markdown files in `workspace/`, making it easy for users to manually intervene and modify at any time.
 - **Dual Memory System**:
     - **Global Memory**: Records worldview changes and important plot nodes (`memory/MEMORY.md`).
     - **Chapter Memory**: Records detailed summaries of recent chapters (`memory/chapters/`) to prevent context overflow.
+    - **Auto-Update**: Automatically updates memories after each chapter without user intervention.
 - **OpenAI Compatibility**: Supports models compatible with the OpenAI API.
 
 ## Installation
@@ -105,13 +107,18 @@ novel_bot/          # Core Code
   agent/            # Agent Logic (Loop, Memory, Tools)
   cli/              # CLI Entry Point
   config/           # Configuration Loading
+  skills/           # Built-in Skills (story-design, chapter-writer, etc.)
 workspace/          # [Auto-Generated] Novel Data Storage (Git Ignored)
   drafts/           # Novel Drafts (e.g. drafts/chapter_01.md)
   SOUL.md           # AI Persona / Writing Style
+  TONE.md           # Writing Tone and Prose Guidelines
   WORLD.md          # Worldview Settings
   CHARACTERS.md     # Character Cards
+  OUTLINE.md        # Chapter-by-Chapter Story Outline
   STORY_SUMMARY.md  # Full Story Plot Summary
   memory/           # Automatically Managed Memory System
+    MEMORY.md       # Global long-term memory
+    chapters/       # Per-chapter summaries
 ```
 
 ## Acknowledgements
