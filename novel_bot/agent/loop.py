@@ -41,12 +41,18 @@ class AgentLoop:
             except Exception as e:
                 console.print(f"[red]Error:[/red] {e}")
 
+    def _clean_content(self, content: str) -> str:
+        """Remove surrogate characters that can't be encoded to UTF-8."""
+        if content is None:
+            return ""
+        return content.encode("utf-8", errors="ignore").decode("utf-8")
+
     async def process_turn(self, user_input: str):
         # 1. Update History
-        self.history.append({"role": "user", "content": user_input})
+        self.history.append({"role": "user", "content": self._clean_content(user_input)})
 
         # 2. Build Context (System Prompt)
-        system_prompt = self.context.build_system_prompt()
+        system_prompt = self._clean_content(self.context.build_system_prompt())
         messages = [{"role": "system", "content": system_prompt}] + self.history
 
         # 3. LLM Call (Think)
@@ -72,9 +78,9 @@ class AgentLoop:
                     
                     # Add tool result to history
                     tool_msg = {
-                        "role": "tool", 
-                        "tool_call_id": tool_call.id, 
-                        "content": result
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": self._clean_content(result)
                     }
                     self.history.append(tool_msg)
                     messages.append(tool_msg)
@@ -91,7 +97,7 @@ class AgentLoop:
             console.print(f"[red]Error:[/red] {e}")
 
     async def _handle_final_response(self, response):
-        content = response.content
+        content = self._clean_content(response.content)
         if content:
             self.history.append({"role": "assistant", "content": content})
             console.print("\n[bold blue]Agent:[/bold blue]")
