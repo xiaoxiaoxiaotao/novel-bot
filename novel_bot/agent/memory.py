@@ -22,7 +22,9 @@ class MemoryStore:
     def read(self, filename: str) -> str:
         path = self._get_path(filename)
         if path.exists():
-            return path.read_text(encoding="utf-8")
+            content = path.read_bytes()
+            # Remove surrogate characters that can't be encoded to UTF-8
+            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return ""
 
     def write(self, filename: str, content: str):
@@ -49,7 +51,8 @@ class MemoryStore:
     def read_global_memory(self) -> str:
         """Reads the long-term memory (important facts)."""
         if self.global_memory_file.exists():
-            return self.global_memory_file.read_text(encoding="utf-8")
+            content = self.global_memory_file.read_bytes()
+            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return ""
 
     def update_global_memory(self, content: str):
@@ -67,7 +70,8 @@ class MemoryStore:
         safe_name = "".join([c for c in chapter_title if c.isalnum() or c in (' ', '-', '_')]).strip().replace(" ", "_")
         path = self.chapters_dir / f"{safe_name}.md"
         if path.exists():
-            return path.read_text(encoding="utf-8")
+            content = path.read_bytes()
+            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return ""
 
     def save_chapter_memory(self, chapter_title: str, content: str):
@@ -87,6 +91,7 @@ class MemoryStore:
         
         output = []
         for f in recent:
-            output.append(f"### {f.stem}\n{f.read_text(encoding='utf-8')}\n")
+            content = f.read_bytes().decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
+            output.append(f"### {f.stem}\n{content}\n")
         
         return "\n".join(output)

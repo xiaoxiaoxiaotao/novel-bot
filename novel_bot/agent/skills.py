@@ -78,14 +78,16 @@ class SkillsLoader:
                     if skill_dir.name == name:
                         skill_file = skill_dir / "SKILL.md"
                         if skill_file.exists():
-                            return skill_file.read_text(encoding="utf-8")
+                            content = skill_file.read_bytes()
+                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
                     
                     # Check frontmatter name
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
                         meta = self._get_metadata_from_file(skill_file)
                         if meta and meta.get("name") == name:
-                            return skill_file.read_text(encoding="utf-8")
+                            content = skill_file.read_bytes()
+                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return None
 
     def load_skills_for_context(self, skill_names: List[str]) -> str:
@@ -155,7 +157,7 @@ class SkillsLoader:
 
     def _get_metadata_from_file(self, file_path: Path) -> Optional[Dict]:
         try:
-            content = file_path.read_text(encoding="utf-8")
+            content = file_path.read_bytes().decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
             return self._get_metadata_from_content(content)
         except Exception:
             return None
