@@ -126,12 +126,24 @@ class ToolRegistry:
     async def execute(self, tool_call: Any) -> str:
         name = tool_call.function.name
         args = json.loads(tool_call.function.arguments)
-        
+
         if name in self.tools:
+            # Check for empty arguments
+            if not args:
+                logger.warning(f"Tool {name} called with empty args")
+                return f"Error: Tool '{name}' requires parameters but received none. Please provide the required arguments."
             logger.info(f"Executing tool: {name} with args: {args}")
             try:
-                # Some tools might be async if we add network later, but file ops are sync here
-                # We can make them async if needed.
+                # Validate required parameters
+                sig = inspect.signature(self.tools[name])
+                required_params = [
+                    p.name for p in sig.parameters.values()
+                    if p.default is inspect.Parameter.empty and p.name != 'self'
+                ]
+                missing = [p for p in required_params if p not in args]
+                if missing:
+                    return f"Error: Missing required parameters: {', '.join(missing)}"
+
                 result = self.tools[name](**args)
                 return str(result)
             except Exception as e:
