@@ -233,6 +233,26 @@ Include for each chapter:
 
 Save to `OUTLINE.md`.
 
+## File Management Rules
+
+**CRITICAL: Use preset files only. DO NOT create duplicate or alternative files.**
+
+The workspace already contains predefined files for story information. You MUST use these exact filenames:
+
+| Content Type | Required Filename | Notes |
+|-------------|-------------------|-------|
+| World Building | `WORLD.md` | **ONLY** this file for world settings. Do NOT create `worldreview.md`, `worldview.md`, etc. |
+| Characters | `CHARACTERS.md` | **ONLY** this file for character info. Do NOT create `characters.md` (lowercase), etc. |
+| Story Summary | `STORY_SUMMARY.md` | **ONLY** this file for plot synopsis. |
+| Writing Tone | `TONE.md` | **ONLY** this file for style guidelines. |
+| Agent Identity | `SOUL.md` | **ONLY** this file for persona. |
+
+### Workflow for File Updates
+
+1. **Check First**: Use `read_file` to check if the preset file exists and read its current content
+2. **Update, Don't Replace**: Append or update the existing preset file rather than creating a new one
+3. **No Duplicates**: Never create files with similar names like `WORLD_review.md`, `world_new.md`, etc.
+
 ## Workflow
 
 1. **Assess Current State**: Check existing files (SOUL.md, WORLD.md, CHARACTERS.md)
