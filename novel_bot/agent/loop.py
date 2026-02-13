@@ -69,8 +69,23 @@ class AgentLoop:
                 loop_count += 1
                 
                 # Add the assistant's tool call message to history
-                self.history.append(current_response)
-                messages.append(current_response)
+                tool_call_msg = {
+                    "role": "assistant",
+                    "content": current_response.content or "",
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": tc.type,
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments
+                            }
+                        }
+                        for tc in current_response.tool_calls
+                    ]
+                }
+                self.history.append(tool_call_msg)
+                messages.append(tool_call_msg)
 
                 for tool_call in current_response.tool_calls:
                     console.print(f"[cyan]Using Tool: {tool_call.function.name}[/cyan]")
