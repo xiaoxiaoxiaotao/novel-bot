@@ -89,7 +89,7 @@ Plan these supporting storylines:
 - How external plot forces internal change
 - Transformation by the end
 
-Save plot outline to `OUTLINE.md` in the drafts folder.
+Use the `write_file` tool to save plot outline to `OUTLINE.md`.
 
 ## Phase 3: World Building
 
@@ -130,7 +130,7 @@ Use the **GRAPES+** method:
 - Ancient civilizations or lost knowledge
 - How past events echo in current plot
 
-Save to `WORLD.md`.
+Use the `write_file` tool to save world building to `WORLD.md`.
 
 ## Phase 4: Character Design
 
@@ -163,7 +163,7 @@ For each major character, define:
 - **Weakness**: How can they be defeated?
 - **Minions**: Who serves them and why?
 
-Save to `CHARACTERS.md`.
+Use the `write_file` tool to save character info to `CHARACTERS.md`.
 
 ## Phase 5: Writing Style Guide
 
@@ -203,7 +203,7 @@ Guide the user to define:
 - Literary (complex structures, vocabulary)
 - Genre-appropriate (technical terms for sci-fi, archaic for fantasy)
 
-Save to `TONE.md` with examples.
+Use the `write_file` tool to save style guidelines to `TONE.md`.
 
 ## Phase 6: Chapter-by-Chapter Blueprint
 
@@ -228,7 +228,7 @@ Include for each chapter:
 - Location
 - Emotional tone
 
-Save to `OUTLINE.md`.
+Use the `write_file` tool to save chapter blueprint to `OUTLINE.md`.
 
 ## File Management Rules
 
