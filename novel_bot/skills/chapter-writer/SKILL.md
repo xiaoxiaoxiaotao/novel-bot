@@ -247,11 +247,12 @@ After drafting, verify:
 1. **Review Context**: Read previous chapters and outline
 2. **Draft**: Write following scene-sequel structure
 3. **Self-Edit**: Run through revision checklist
-4. **AUTO-UPDATE Memory**: WITHOUT asking:
+4. **CRITICAL: Save Chapter**: Use the `write_file` tool to save the complete chapter to `drafts/chapter_XX.md`. DO NOT output the full chapter text to the user.
+5. **AUTO-UPDATE Memory**: WITHOUT asking:
    - Call `memorize_chapter_event` with detailed summary
    - Update `STORY_SUMMARY.md` if plot advanced significantly
-5. **Deliver**: Present chapter to user
-6. **Revise**: Incorporate user input if any
+6. **Deliver**: Confirm to user that chapter is saved, provide brief summary only
+7. **Revise**: Incorporate user input if any
 
 ## Quality Standards
 
