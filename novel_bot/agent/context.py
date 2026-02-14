@@ -22,9 +22,6 @@ class ContextBuilder:
 
         CONFIGURED_LEN = 20
 
-        settings = self.memory.read("SETTINGS.md")
-        settings_configured = bool(settings and len(settings.strip()) > CONFIGURED_LEN)
-
         # Static Story Context
         settings = self.memory.read("SETTINGS.md")
         settings_configured = bool(settings and len(settings.strip()) > CONFIGURED_LEN)
@@ -112,8 +109,8 @@ Skills with available="false" need dependencies installed first.
         prompt_parts.append("   - When writing chapters, outlines, character sheets, or any substantial text: DO NOT output it in your response.")
         prompt_parts.append("   - Instead, call the 'write_file' tool with the filename and content parameters.")
         prompt_parts.append("   - Only confirm to the user that the file has been saved, with a brief summary.")
-        prompt_parts.append("5. ALWAYS save your novel chapters in the 'drafts/' directory (e.g., 'drafts/chapter_01.md').")
-        prompt_parts.append("6. When a chapter is finished, memorize its DETAILED SUMMARY using 'memorize_chapter_event'.")
+        prompt_parts.append("5. ALWAYS save your novel chapters in the 'drafts/' directory with format 'drafts/chapter_XX_Your_Title.md' (e.g., 'drafts/chapter_01_The_Beginning.md').")
+        prompt_parts.append("6. When a chapter is finished, memorize its DETAILED SUMMARY using 'memorize_chapter_event' with format 'Chapter XX: Your Title' (e.g., 'Chapter 01: The Beginning').")
         prompt_parts.append("   - Do NOT save the full text in memory. Save the PLOT POINTS, KEY ITEMS, and CHARACTER STATUS CHANGES.")
         prompt_parts.append("7. **CRITICAL LONG-TERM MEMORY**: You MUST maintain 'STORY_SUMMARY.md' as a high-level plot synopsis of the ENTIRE story so far.")
         prompt_parts.append("   - This is different from chapter summaries. It is the single source of truth for the ongoing story arc.")

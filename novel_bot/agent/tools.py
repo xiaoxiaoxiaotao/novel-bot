@@ -50,7 +50,7 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filename": {"type": "string", "description": "The path to the file relative to workspace root (e.g. 'drafts/chapter_01.md')"},
+                        "filename": {"type": "string", "description": "The path to the file relative to workspace root. Use format 'drafts/chapter_XX_Your_Title.md' (e.g., 'drafts/chapter_01_The_Beginning.md')"},
                         "content": {"type": "string", "description": "Full content to write into the file"}
                     },
                     "required": ["filename", "content"],
@@ -108,7 +108,7 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "chapter_title": {"type": "string", "description": "The title of the chapter (e.g., 'Chapter 03')"},
+                        "chapter_title": {"type": "string", "description": "The title of the chapter. Use format 'Chapter XX: Your Title' (e.g., 'Chapter 03: The Beginning'). This will be saved as 'memory/chapters/chapter_XX_Your_Title.md'."},
                         "content": {"type": "string", "description": "Detailed bullet points of plot events, item acquisition, and character status changes."}
                     },
                     "required": ["chapter_title", "content"],
