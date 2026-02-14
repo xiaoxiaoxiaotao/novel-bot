@@ -41,7 +41,6 @@ class SkillsLoader:
 
         # Load from built-in skills directory
         if self.skills_dir.exists():
-            logger.info(f"Scanning skills from: {self.skills_dir}")
             for skill_dir in self.skills_dir.iterdir():
                 if skill_dir.is_dir():
                     skill_file = skill_dir / "SKILL.md"
