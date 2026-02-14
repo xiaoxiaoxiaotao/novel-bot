@@ -1,266 +1,193 @@
 ```skill
 ---
 name: chapter-writer
-description: Professional chapter writing skill for crafting individual chapters with controlled prose, dialogue, pacing, and narrative techniques. Use when writing or revising specific chapters to ensure quality storytelling.
+description: Professional novel writing skill focused on literary prose, atmospheric imagery, and narrative sophistication. Employs diverse rhetorical devices, sensory descriptions, and psychological depth to craft chapters with elevated literary quality.
+always: true
 ---
 
-# Chapter Writer Skill
+# Master Chapter Writing Skill
 
-This skill provides techniques and guidelines for writing individual chapters with professional craft. Use when the user asks to "write chapter X", "revise this scene", or improve prose quality.
+This skill guides the creation of novel chapters with elevated literary quality, emphasizing atmospheric construction, rhetorical artistry, and narrative depth—transcending mundane dialogue-heavy prose.
 
-## When to Use
+## Core Writing Principles
 
-- Writing a new chapter from outline
-- Revising existing chapter content
-- User complains about "flat" or "boring" writing
-- Need to adjust pacing or emotional impact
-- Balancing description, dialogue, and action
+### 1. Description Over Dialogue
 
-## Pre-Writing: Chapter Analysis
+**Golden Ratio**: Description 60% : Dialogue 25% : Internal Monologue 15%
 
-Before writing, analyze:
+- Use environmental description to evoke emotion, not direct statements
+- Use action details to reveal character, not explicit narration
+- Use sensory experience to convey information, not dry exposition
 
-1. **Chapter Purpose**: What must this chapter accomplish?
-   - Advance main plot
-   - Develop subplot
-   - Reveal character
-   - Build world
-   - Change emotional tone
+### 2. Five-Sense Immersion
 
-2. **Outline Reference**: Check `OUTLINE.md` for:
-   - Target chapter length
-   - POV character
-   - Key events to include
-   - Subplot threads to touch
+Every significant scene must activate at least three senses:
 
-3. **Previous Context**: Read last 1-2 chapters for:
-   - What just happened
-   - Emotional state of characters
-   - Unresolved tensions
+- **Visual**: Light, shadow, color, form, motion
+- **Auditory**: Voices, ambient sounds, the resonance of silence
+- **Olfactory**: Scents, odors, stale or fresh air
+- **Tactile**: Temperature, texture, pain or pleasure
+- **Gustatory**: Bitterness, sweetness, metallic taste, blood
 
-## The Scene-Sequel Cycle
-
-Structure chapters using alternating Scene and Sequel:
-
-### Scene (Action)
-**Goal → Conflict → Disaster**
-- Character wants something specific
-- Opposition prevents immediate success
-- Ends with setback or complication
-
-**Proportion**: 60-70% of chapter word count
-
-### Sequel (Reaction)
-**Reaction → Dilemma → Decision**
-- Emotional response to what happened
-- Review options and consequences
-- Choose new goal (leading to next scene)
-
-**Proportion**: 30-40% of chapter word count
-
-## Prose Control Techniques
-
-### 1. Description Management
-
-**The 3-Sense Rule**: Every scene should evoke at least 3 senses:
-- Visual (always)
-- Plus two from: sound, smell, touch, taste
-
-**Selective Detail**: Don't describe everything. Focus on:
-- What's unusual or noteworthy
-- What reveals character (what they notice)
-- What advances mood or theme
-- What will matter later (Chekhov's gun)
-
-**Dynamic Description**: Avoid static lists. Embed description in action:
+**Example**:
 ```
-Weak: The room was dusty. There was a table. The table was old.
-Strong: She brushed dust from the ancient table, her fingers catching on splintered edges.
+Mediocre: The room was dark, and he was afraid.
+
+Elevated: Twilight seeped through the gaps in the window lattice, weaving a gray net across the blue-brick floor. The air carried the musty scent of aged wood, and each breath felt like swallowing some viscous liquid. His fingertips touched the wall—cold, damp, like the skin of some living creature.
 ```
 
-### 2. Dialogue Craft
+### 3. Rhetorical Artistry
 
-**Purposeful Speech**: Every line should do ONE of:
-- Advance plot (reveal information)
-- Reveal character (show personality)
-- Create conflict (disagreement, tension)
-- Build relationship (show dynamics)
+#### Metaphor and Symbolism
+- Concretize abstract emotions: "Loneliness is a city without walls"
+- Map natural phenomena to inner states: "The downpour mirrored the turmoil in her heart"
 
-**Dialogue Tags**: Use "said" 90% of the time. Other tags (whispered, shouted) for emphasis only.
+#### Synesthesia
+- "His voice carried the roughness of sandpaper"
+- "That shade of red screamed across his vision"
 
-**Action Beats**: Break dialogue with action to:
-- Show emotion without naming it
-- Control pacing
-- Identify speaker without tags
+#### Parallelism and Climax
+- "He walked through spring's blossoms, summer's storms, autumn's falling leaves, winter's frost"
 
+#### Subtlety and Implication
+- Instead of "He was very sad," write "He gazed out the window, for a very long time"
+
+### 4. Scene Construction: Three Elements
+
+#### Spatial Layers
+- Distant view: Sky, mountains, rivers, city silhouettes
+- Middle ground: Buildings, streets, crowds
+- Close-up: Characters, objects, textural details
+
+#### Temporal Flow
+- Dawn's mist, midday's heat, dusk's desolation, midnight's silence
+- Seasonal transitions and their chromatic shifts
+
+#### Atmosphere Crafting
+- Tension: Short sentences, fragmented senses, rapid actions
+- Serenity: Long sentences, delicate observations, slow pacing
+- Mystery: Shadows, unknown sounds, unresolved details
+
+### 5. Character Portrayal Techniques
+
+#### Features Over Full Description
+- Instead of "He was handsome," write "His brow bone cast a sharp shadow"
+
+#### Action Reveals Character
+- The anxious: Frequently adjusting clothing, unconsciously tapping surfaces
+- The confident: Slow, steady gait, direct eye contact
+- The timid: Averted gaze, hunched shoulders
+
+#### Externalizing Inner Worlds
+- Mirror emotions through environment: "Oppressive clouds" for depression, "Sunlight breaking through" for hope
+- Convey feelings through physical reactions: Stomach tightening, throat drying, fingertips trembling
+
+### 6. Narrative Pacing Control
+
+#### Fast Pace (Combat, Chase, Crisis)
+- Short sentences, verbs at the forefront
+- Fragmented senses, simulating chaos
+- Omit transitions, cut directly
+
+**Example**:
 ```
-"I won't do it." She slammed her fist on the table. "Not today, not ever."
-```
-
-**Subtext**: What characters DON'T say matters. Use:
-- Evasion and deflection
-- Interrupted thoughts
-- Changed subjects
-- Lies and omissions
-
-### 3. Internal Monologue
-
-**Stream of Consciousness**: For intense moments, show raw thoughts:
-```
-No. No no no. This wasn't happening. Not now, not after everything.
-```
-
-**Analytical Thought**: For strategic moments, show reasoning:
-```
-If she went left, she'd face the guards. Right meant the window—three stories up. Neither option ended well.
-```
-
-**Emotional Processing**: Show feelings through physical reaction:
-```
-Her stomach twisted. The room felt too small, the air too thin.
-```
-
-### 4. Pacing Control
-
-**Fast Pacing** (Action scenes):
-- Short sentences
-- Paragraphs of 1-3 lines
-- Minimal description
-- Rapid dialogue exchanges
-- Sentence fragments for impact
-
-**Slow Pacing** (Emotional/Contemplative scenes):
-- Longer, complex sentences
-- Expanded paragraphs
-- Rich sensory detail
-- Extended internal monologue
-- Metaphor and reflection
-
-**Rhythm Variation**: Alternate between fast and slow within a chapter to prevent monotony.
-
-## Narrative Techniques
-
-### Show vs. Tell
-
-**Show** (immersive, slower):
-- Character actions and reactions
-- Sensory details
-- Dialogue and subtext
-- Specific examples
-
-**Tell** (efficient, faster):
-- Time transitions ("Three days later...")
-- Background information
-- Summarizing unimportant events
-- Establishing routine
-
-**Rule**: Show the important, tell the mundane.
-
-### Deep POV
-
-Get inside the character's head:
-
-**Filter Words to Minimize**: seemed, felt, thought, wondered, realized, noticed, saw, heard
-
-**Instead of**: She felt angry.
-**Write**: Her hands shook. She wanted to break something.
-
-**Instead of**: He realized she was lying.
-**Write**: Her eyes darted to the door. The story didn't add up.
-
-### Opening Hooks
-
-Start chapters with:
-- **Action**: Something happening immediately
-- **Dialogue**: Mid-conversation (intriguing)
-- **Thought**: Character's pressing concern
-- **Setting**: Unique or atmospheric location
-
-Avoid: Waking up, looking in mirror, weather descriptions (unless exceptional).
-
-### Ending Hooks
-
-End chapters with:
-- **Cliffhanger**: Immediate danger or surprise
-- **Revelation**: New information that changes everything
-- **Decision**: Character commits to risky course
-- **Emotional Shift**: Relationship changes
-- **Question**: Unresolved tension
-
-## Chapter Structure Template
-
-```
-[HOOK - First paragraph grabs attention]
-
-[SCENE - Character pursues goal]
-- Establish where/when immediately
-- Show goal through action, not exposition
-- Introduce opposition/conflict
-- Escalate complications
-- End with setback or partial victory
-
-[TRANSITION - Brief pause, process what happened]
-
-[SEQUEL - Character reacts and decides]
-- Emotional reaction (brief)
-- Analytical review of situation
-- Consider options
-- Make decision (sets up next scene or chapter)
-
-[HOOK - End with forward momentum]
+A flash of steel.
+Blood.
+He twisted, feeling the blade's chill graze his ribs.
+No time to breathe. The second strike came.
 ```
 
-## Revision Checklist
+#### Slow Pace (Contemplation, Emotion, Description)
+- Extended sentences, rich modifiers
+- Delicate senses, layered complexity
+- Stretched time, magnified details
 
-After drafting, verify:
-
-- [ ] Word count matches target (±10%)
-- [ ] POV remains consistent throughout
-- [ ] Every scene has clear goal and outcome
-- [ ] Dialogue sounds natural when read aloud
-- [ ] No info-dumps longer than 2 paragraphs
-- [ ] Sensory details present (3+ senses)
-- [ ] Chapter ends with forward momentum
-- [ ] No filter words unless intentional
-- [ ] Action beats used instead of dialogue tags where appropriate
-- [ ] Subtext present in important conversations
-
-## Common Problems & Solutions
-
-**Problem**: Chapter feels flat
-**Solution**: Add micro-tension. Every interaction should have some friction, even between allies.
-
-**Problem**: Too much exposition
-**Solution**: Convert exposition to dialogue or action. Show discovery instead of explaining.
-
-**Problem**: Pacing drags
-**Solution**: Cut description by 50%. Start scenes later, end earlier. Remove transitional summaries.
-
-**Problem**: Characters sound alike
-**Solution**: Give each character distinct vocabulary, sentence length, and speech patterns.
-
-**Problem**: Emotional distance
-**Solution**: Use deep POV. Show physical reactions. Replace "she felt" with visceral details.
-
-## Workflow
-
-1. **Review Context**: Read previous chapters and outline
-2. **Draft**: Write following scene-sequel structure
-3. **Self-Edit**: Run through revision checklist
-4. **CRITICAL: Save Chapter**: Use the `write_file` tool to save the complete chapter to `drafts/chapter_XX.md`. DO NOT output the full chapter text to the user.
-5. **AUTO-UPDATE Memory**: WITHOUT asking:
-   - Call `memorize_chapter_event` with detailed summary
-   - Update `STORY_SUMMARY.md` if plot advanced significantly
-6. **Deliver**: Confirm to user that chapter is saved, provide brief summary only
-7. **Revise**: Incorporate user input if any
-
-## Quality Standards
-
-Professional chapter writing should:
-- Engage from the first sentence
-- Maintain consistent voice and tone
-- Balance all narrative elements (action, dialogue, thought)
-- Advance at least one plot or subplot
-- Deepen reader understanding of character
-- Leave reader wanting to continue
+**Example**:
 ```
+The setting sun slanted through the west window, gilding her silhouette with golden light. Dust motes drifted slowly in the beam, like countless tiny worlds rotating in silent stillness. She watched that light, remembering an afternoon many years ago—the same radiance, the same silence, only then, her mother was still beside her.
+```
+
+### 7. Eastern Aesthetic Imagery
+
+#### The Beauty of Emptiness (留白)
+- Do not say everything; let the reader imagine
+- End with scenery, leaving lingering resonance
+
+#### Interplay of Void and Substance
+- Substantial: Concrete object descriptions
+- Void: Interwoven memories, imagination, dreams
+
+#### Dynamic Stillness
+- Motion highlighting stillness: "Cicadas' noise makes the forest quieter; birds' songs make the mountains more serene"
+- Stillness highlighting motion: A single sound in complete silence
+
+#### Color Symbolism
+- Cyan (青): Vitality, hope, youth
+- White (白): Purity, emptiness, death
+- Red (红): Passion, blood, celebration
+- Black (黑): Mystery, oppression, unknown
+- Gold (金): Nobility, glory, illusion
+
+## Writing Workflow
+
+### Phase 1: Scene Conception
+1. Determine the core emotion of the scene
+2. Select dominant senses (visual/auditory/tactile)
+3. Design 3-5 key images
+4. Plan lighting and color palette
+
+### Phase 2: First Draft
+1. Open with environmental description to establish atmosphere
+2. Introduce characters through distinctive details
+3. Keep dialogue minimal; every line must carry weight
+4. Intersperse internal monologue to deepen emotion
+
+### Phase 3: Literary Polishing
+1. Check five-sense coverage (at least three)
+2. Replace direct statements with metaphor and implication
+3. Adjust sentence length to control rhythm
+4. Add Eastern aesthetic imagery elements
+
+### Phase 4: Word Count Control
+- If under count: Expand environmental description, deepen psychological portrayal
+- If over count: Trim dialogue, remove repetitive narration
+
+## Quality Checklist
+
+- [ ] Every paragraph contains sensory details (at least one non-visual)
+- [ ] No more than three consecutive lines of dialogue
+- [ ] Character appearance conveyed through feature points, not full description
+- [ ] Emotions implied through environment/action, not directly stated
+- [ ] At least one rhetorical device employed (metaphor/synesthesia/parallelism)
+- [ ] Scene has clear lighting/color palette
+- [ ] Ending has lingering resonance, not abrupt
+- [ ] Meets target word count (±10%)
+
+## Common Pitfalls to Avoid
+
+**Pitfall 1: Dialogue Stacking**
+- Problem: Characters talk endlessly, like a stage play
+- Fix: Insert action or psychological description after each dialogue segment
+
+**Pitfall 2: Omniscient Narration**
+- Problem: "He was angry" "She felt sad"
+- Fix: "His knuckles whitened with tension" "Her eyes burned, yet she lifted her chin stubbornly"
+
+**Pitfall 3: Empty Scenery**
+- Problem: Characters converse in a void
+- Fix: Establish clear spatial awareness; let the reader know where they are
+
+**Pitfall 4: Monotonous Pacing**
+- Problem: Same speed throughout
+- Fix: Alternate tension and relaxation, ebb and flow
+
+**Pitfall 5: Lack of Distinctive Style**
+- Problem: Reads like any other novel
+- Fix: Establish unique imagery systems and linguistic rhythm
+
+## Output Requirements
+
+1. **MUST use write_file tool to save chapters**, do not output full text directly
+2. Self-check word count before saving
+3. Call memorize_chapter_event to record key plot points after saving
+4. Confirm successful save to user, briefly summarize chapter highlights

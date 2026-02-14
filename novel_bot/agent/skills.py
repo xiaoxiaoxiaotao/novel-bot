@@ -9,85 +9,84 @@ from typing import List, Dict, Optional, Any
 import yaml
 from loguru import logger
 
-# Default builtin skills directory (relative to this file)
-# In novel_bot, we might not have a separate builtin dir, or we can use the same pattern.
-# We will assume local skills for now.
-BUILTIN_SKILLS_DIR = None 
+# Built-in skills directory (relative to this file)
+SKILLS_DIR = Path(__file__).parent.parent / "skills"
 
 class SkillsLoader:
     """
     Loader for agent skills.
-    
+
     Skills are markdown files (SKILL.md) that teach the agent how to use
     specific tools or perform certain tasks.
+
+    Skills are loaded from: novel_bot/skills/ (package directory)
     """
-    
-    def __init__(self, workspace: Path, builtin_skills_dir: Optional[Path] = None):
+
+    def __init__(self, workspace: Path):
         self.workspace = workspace
-        self.workspace_skills = workspace / "skills"
-        # novel_bot might be running from root, so we check if there is a skills dir next to the package or inside.
-        # But for now let's just use workspace/skills as the main source.
-        self.builtin_skills = builtin_skills_dir
+        self.skills_dir = SKILLS_DIR
     
     def list_skills(self, filter_unavailable: bool = True) -> List[Dict[str, str]]:
         """
         List all available skills.
-        
+
         Args:
             filter_unavailable: If True, filter out skills with unmet requirements.
-        
+
         Returns:
             List of skill info dicts.
         """
         skills = []
         loaded_names = set()
-        
-        # Workspace skills (highest priority)
-        if self.workspace_skills.exists():
-            for skill_dir in self.workspace_skills.iterdir():
+
+        # Load from built-in skills directory
+        if self.skills_dir.exists():
+            logger.info(f"Scanning skills from: {self.skills_dir}")
+            for skill_dir in self.skills_dir.iterdir():
                 if skill_dir.is_dir():
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
                         name = skill_dir.name
                         # Try to get name from frontmatter if possible
-                        meta = self.get_skill_metadata(name)
+                        meta = self._get_metadata_from_file(skill_file)
                         if meta and meta.get("name"):
                             name = meta["name"]
-                        
+
                         if name not in loaded_names:
-                            skills.append({"name": name, "path": str(skill_file), "source": "workspace"})
+                            skills.append({"name": name, "path": str(skill_file), "source": "builtin"})
                             loaded_names.add(name)
-        
+        else:
+            logger.warning(f"Skills directory not found: {self.skills_dir}")
+
         # Filter by requirements
         if filter_unavailable:
-            return [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
+            available = [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
+            return available
         return skills
 
     def load_skill(self, name: str) -> Optional[str]:
         """
         Load a skill by name.
         """
-        # We need to map the "name" back to a directory. 
-        # Since we might have renamed it based on frontmatter, this is tricky.
-        # But usually directory name == skill name.
-        # Let's search for it.
-        if self.workspace_skills.exists():
-             for skill_dir in self.workspace_skills.iterdir():
+        # Search in built-in skills directory
+        if self.skills_dir.exists():
+            for skill_dir in self.skills_dir.iterdir():
                 if skill_dir.is_dir():
-                    # Check dir name first
-                    if skill_dir.name == name:
-                        skill_file = skill_dir / "SKILL.md"
-                        if skill_file.exists():
-                            content = skill_file.read_bytes()
-                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
-                    
-                    # Check frontmatter name
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
-                        meta = self._get_metadata_from_file(skill_file)
-                        if meta and meta.get("name") == name:
+                        # Check dir name first
+                        if skill_dir.name == name:
+                            logger.info(f"Loading skill: {name}")
                             content = skill_file.read_bytes()
                             return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
+
+                        # Check frontmatter name
+                        meta = self._get_metadata_from_file(skill_file)
+                        if meta and meta.get("name") == name:
+                            logger.info(f"Loading skill: {name}")
+                            content = skill_file.read_bytes()
+                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
+        logger.warning(f"Skill not found: {name}")
         return None
 
     def load_skills_for_context(self, skill_names: List[str]) -> str:
