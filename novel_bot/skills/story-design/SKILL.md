@@ -165,9 +165,33 @@ For each major character, define:
 
 Use the `write_file` tool to save character info to `CHARACTERS.md`.
 
-## Phase 5: Writing Style Guide
+## Phase 5: Writing Settings Guide
 
-### 5.1 Narrative Style
+Create a comprehensive `SETTINGS.md` file that combines:
+1. **Agent Persona** (formerly SOUL.md) - Who the agent is as a writer
+2. **Writing Style** (formerly TONE.md) - How the prose should feel
+3. **User Requirements** (formerly USER.md) - What the user specifically wants
+
+### 5.1 Agent Persona Section
+
+Define the agent's writing identity:
+
+```markdown
+## Agent Persona
+
+**Role**: [e.g., Master Novelist, Genre Specialist, Literary Architect]
+**Voice**: [e.g., Eloquent and perceptive, gritty and raw, warm and intimate]
+**Approach**: [e.g., Balance artistic integrity with engaging storytelling]
+
+### Literary Philosophy
+- [Core principles that guide the writing]
+- [e.g., Show don't tell, economy of words, emotional truth]
+
+### Creative Priorities
+- [What matters most in this story]
+```
+
+### 5.2 Writing Style Section
 
 **Point of View**
 - First person (I/me) - intimate, limited
@@ -179,7 +203,7 @@ Use the `write_file` tool to save character info to `CHARACTERS.md`.
 - Past tense (traditional)
 - Present tense (immediate, cinematic)
 
-### 5.2 Prose Characteristics
+**Prose Characteristics**
 
 Guide the user to define:
 
@@ -203,7 +227,23 @@ Guide the user to define:
 - Literary (complex structures, vocabulary)
 - Genre-appropriate (technical terms for sci-fi, archaic for fantasy)
 
-Use the `write_file` tool to save style guidelines to `TONE.md`.
+**Sentence Architecture**
+- Varied rhythm, subordinate clauses, fragmentary power
+
+### 5.3 User Requirements Section
+
+Record specific user requests:
+
+```markdown
+## User Requirements
+
+**Target Audience**: [Who is this story for?]
+**Content Boundaries**: [What to avoid or emphasize]
+**Special Requests**: [Any specific elements the user wants]
+**Reference Works**: [Books/styles to emulate or avoid]
+```
+
+Use the `write_file` tool to save all settings to `SETTINGS.md`.
 
 ## Phase 6: Chapter-by-Chapter Blueprint
 
@@ -241,8 +281,7 @@ The workspace already contains predefined files for story information. You MUST 
 | World Building | `WORLD.md` | **ONLY** this file for world settings. Do NOT create `worldreview.md`, `worldview.md`, etc. |
 | Characters | `CHARACTERS.md` | **ONLY** this file for character info. Do NOT create `characters.md` (lowercase), etc. |
 | Story Summary | `STORY_SUMMARY.md` | **ONLY** this file for plot synopsis. |
-| Writing Tone | `TONE.md` | **ONLY** this file for style guidelines. |
-| Agent Identity | `SOUL.md` | **ONLY** this file for persona. |
+| Writing Settings | `SETTINGS.md` | **ONLY** this file for style, tone, persona, and user requirements. |
 
 ### Workflow for File Updates
 
@@ -258,7 +297,7 @@ The workspace already contains predefined files for story information. You MUST 
    - Create OUTLINE.md with full chapter-by-chapter breakdown
    - Create CHARACTERS.md with protagonist, supporting cast, antagonist
    - Create WORLD.md with setting details
-   - Update TONE.md with style guidelines
+   - Create SETTINGS.md combining persona, style, and user requirements
 4. **Summarize**: Present the complete plan to user for approval
 
 ## Success Criteria
@@ -270,6 +309,6 @@ Before finishing, ensure:
 - [ ] World has unique, plot-relevant elements
 - [ ] Protagonist has clear arc and flaw
 - [ ] Antagonist has understandable motivation
-- [ ] Writing style guidelines established
+- [ ] SETTINGS.md created with persona, style, and user requirements
 - [ ] Chapter blueprint created
 ```
