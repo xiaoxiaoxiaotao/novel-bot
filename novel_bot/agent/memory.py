@@ -84,14 +84,62 @@ class MemoryStore:
         
     def get_recent_chapters(self, limit: int = 3) -> str:
         """Get the contents of the most recent chapter memory files."""
-        # Sort by modification time? Or name? 
+        # Sort by modification time? Or name?
         # Assuming names like chapter_01, chapter_02 helps sorting.
         files = sorted(self.chapters_dir.glob("*.md"))
         recent = files[-limit:]
-        
+
         output = []
         for f in recent:
             content = f.read_bytes().decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
             output.append(f"### {f.stem}\n{content}\n")
-        
+
         return "\n".join(output)
+
+    def get_writing_progress(self) -> str:
+        """Get current writing progress information."""
+        drafts_dir = self.workspace / "drafts"
+
+        # Count chapter files
+        chapter_files = []
+        if drafts_dir.exists():
+            chapter_files = sorted([f for f in drafts_dir.glob("chapter_*.md") if f.stem.replace("chapter_", "").isdigit()])
+
+        total_chapters = len(chapter_files)
+
+        # Find latest chapter number
+        latest_chapter = 0
+        if chapter_files:
+            try:
+                latest_chapter = max([int(f.stem.replace("chapter_", "")) for f in chapter_files])
+            except ValueError:
+                pass
+
+        # Check story summary
+        summary = self.read("STORY_SUMMARY.md")
+        summary_status = "exists" if summary and len(summary) > 100 else "needs_update"
+
+        # Count chapter memories
+        memory_files = list(self.chapters_dir.glob("*.md"))
+
+        progress_info = f"""## Current Writing Progress
+
+- **Latest Chapter**: Chapter {latest_chapter}
+- **Total Chapters Written**: {total_chapters}
+- **Chapter Memories Saved**: {len(memory_files)}
+- **Story Summary Status**: {summary_status}
+
+### Recent Drafts
+"""
+
+        # List last 5 chapters
+        recent_files = chapter_files[-5:]
+        for f in reversed(recent_files):
+            size = f.stat().st_size
+            progress_info += f"- {f.name} ({size} bytes)\n"
+
+        if not recent_files:
+            progress_info += "- No chapters found in drafts/\n"
+
+        logger.info(f"Progress check: Chapter {latest_chapter} of {total_chapters} total")
+        return progress_info

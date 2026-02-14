@@ -123,6 +123,20 @@ class ToolRegistry:
             }
         })
 
+        # Progress tracking tool
+        self.tools["get_writing_progress"] = self.memory.get_writing_progress
+        self.schemas.append({
+            "type": "function",
+            "function": {
+                "name": "get_writing_progress",
+                "description": "Get current writing progress: latest chapter number, total chapters written, and story completion status.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        })
+
     async def execute(self, tool_call: Any) -> str:
         name = tool_call.function.name
         args = json.loads(tool_call.function.arguments)
