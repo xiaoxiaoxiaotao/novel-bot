@@ -20,26 +20,20 @@ class ContextBuilder:
             "Your goal is to write a cohesive, engaging long-form story based on the user's instructions.",
         ]
 
-        if settings:
+        settings_configured = False
+        if settings and "No writing settings have been configured yet" not in settings:
             prompt_parts.append(f"\n## WRITING SETTINGS\n{settings}")
-        else:
-            # Fallback to legacy files for backward compatibility
-            soul = self.memory.read("SOUL.md")
-            tone = self.memory.read("TONE.md")
-            
-            if soul:
-                prompt_parts.append(f"\n## SOUL / PERSONA\n{soul}")
-            
-            if tone:
-                prompt_parts.append(f"\n## WRITING TONE\n{tone}")
+            settings_configured = True
 
         # Static Story Context
         chars = self.memory.read("CHARACTERS.md")
-        if chars:
+        chars_configured = bool(chars and len(chars.strip()) > 10)
+        if chars_configured:
             prompt_parts.append(f"\n## CHARACTERS\n{chars}")
         
         world = self.memory.read("WORLD.md")
-        if world:
+        world_configured = bool(world and len(world.strip()) > 10)
+        if world_configured:
             prompt_parts.append(f"\n## WORLD SETTING\n{world}")
 
         # Dynamic Context (Memory)
@@ -55,7 +49,8 @@ class ContextBuilder:
 
         # 3. Overall Story Progress (if any manual summary exists)
         summary = self.memory.read("STORY_SUMMARY.md")
-        if summary:
+        summary_configured = bool(summary and len(summary.strip()) > 10)
+        if summary_configured:
             prompt_parts.append(f"\n## STORY SO FAR\n{summary}")
 
         # Skills - progressive loading
@@ -80,7 +75,8 @@ Skills with available="false" need dependencies installed first.
 
         # Check for outline
         outline = self.memory.read("OUTLINE.md")
-        if outline:
+        outline_configured = bool(outline and len(outline.strip()) > 10)
+        if outline_configured:
             prompt_parts.append(f"\n## STORY OUTLINE\n{outline}")
 
         # Add progress tracking info
@@ -89,7 +85,21 @@ Skills with available="false" need dependencies installed first.
             prompt_parts.append(f"\n{progress_info}")
 
         prompt_parts.append("\n## INSTRUCTIONS")
-        prompt_parts.append("1. Always stay in character as defined in SETTINGS.md")
+        
+        missing_critical = []
+        if not settings_configured: missing_critical.append("SETTINGS.md")
+        if not chars_configured: missing_critical.append("CHARACTERS.md")
+        if not world_configured: missing_critical.append("WORLD.md")
+        if not outline_configured: missing_critical.append("OUTLINE.md")
+        if not summary_configured: missing_critical.append("STORY_SUMMARY.md")
+        
+        if missing_critical:
+            prompt_parts.append(f"0. **CRITICAL CONFIGURATION NEEDED**: The following files are missing or unconfigured: {', '.join(missing_critical)}.")
+            prompt_parts.append("   - Your PRIMARY GOAL is to establish these story elements before writing chapters.")
+            prompt_parts.append("   - Ask the user for input or use the 'story-design' skill to generate them.")
+            prompt_parts.append("   - Save the configurations using 'write_file'.")
+
+        prompt_parts.append("1. Always stay in character as defined in CHARACTERS.md and the tone defined in SETTINGS.md. Do NOT break character or tone under any circumstances.")
         prompt_parts.append("2. Maintain consistency with CHARACTERS.md, WORLD.md, and OUTLINE.md")
         prompt_parts.append("3. Use the 'read_file' tool to check specific details if unsure.")
         prompt_parts.append("4. **CRITICAL: NEVER output long content directly to the user. ALWAYS use the 'write_file' tool to save content to files.**")
@@ -109,7 +119,7 @@ Skills with available="false" need dependencies installed first.
         prompt_parts.append("   - DO NOT skip this step. The story summary must always reflect the LATEST written chapter.")
         prompt_parts.append("8. **SMART QUESTION POLICY - MAIN ASK, SECONDARY AUTO**:")
         prompt_parts.append("   - **MUST ASK (Main)**: Story premise/genre, chapter word count, total chapter count, core conflict")
-        prompt_parts.append("   - **AUTO-CREATE (Secondary)**: After getting main info, AUTOMATICALLY create detailed outline, characters, world - DO NOT ask for permission")
+        prompt_parts.append("   - **AUTO-CREATE (Secondary)**: After getting main info, AUTOMATICALLY create detailed outline, characters, world, settings - DO NOT ask for permission")
         prompt_parts.append("   - **AUTO-UPDATE**: After writing each chapter, automatically update chapter memory and STORY_SUMMARY.md - DO NOT ask")
         prompt_parts.append("9. **Writing Flow**: When user says 'write chapter X', immediately: 1) Read outline, 2) Write chapter, 3) Use 'write_file' tool to save to drafts/, 4) Call memorize_chapter_event, 5) Update STORY_SUMMARY.md - ALL autonomously")
 
