@@ -324,14 +324,7 @@ class AgentLoop:
     # Patterns that indicate model tried to use tools but output them as text instead
     TOOL_CALL_PATTERNS = [
         # you could add your own tags such as "minimax:tool_call" for minimax model to detect if it outputs tool calls as text,
-        "Using Tool:",
         "tool_call",
-        "write_file(",
-        "read_file(",
-        "memorize_chapter_event(",
-        "memorize_important_fact(",
-        "list_files(",
-        "append_file(",
     ]
 
     def _detect_fake_tool_calls(self, content: str) -> bool:
