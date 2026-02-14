@@ -32,9 +32,9 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "The relative path to the file from workspace root (e.g., 'story/chapter1.md')"}
+                        "filename": {"type": "string", "description": "The path to the file relative to workspace root (e.g. 'story/chapter1.md')"}
                     },
-                    "required": ["filepath"],
+                    "required": ["filename"],
                     "additionalProperties": False
                 },
                 "strict": True
@@ -50,10 +50,10 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "The relative path to the file (e.g., 'drafts/chapter_01.md')"},
-                        "content": {"type": "string", "description": "The full content to write into the file"}
+                        "filename": {"type": "string", "description": "The path to the file relative to workspace root (e.g. 'drafts/chapter_01.md')"},
+                        "content": {"type": "string", "description": "Full content to write into the file"}
                     },
-                    "required": ["filepath", "content"],
+                    "required": ["filename", "content"],
                     "additionalProperties": False
                 },
                 "strict": True
@@ -88,10 +88,10 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "The relative path to the file"},
-                        "content": {"type": "string", "description": "The text content to append to the end of the file"}
+                        "filename": {"type": "string", "description": "The path to the file relative to workspace root"},
+                        "content": {"type": "string", "description": "Text content to append"}
                     },
-                    "required": ["filepath", "content"],
+                    "required": ["filename", "content"],
                     "additionalProperties": False
                 },
                 "strict": True
