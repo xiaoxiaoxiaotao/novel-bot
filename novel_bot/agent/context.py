@@ -26,11 +26,16 @@ class ContextBuilder:
         settings_configured = bool(settings and len(settings.strip()) > CONFIGURED_LEN)
 
         # Static Story Context
+        settings = self.memory.read("SETTINGS.md")
+        settings_configured = bool(settings and len(settings.strip()) > CONFIGURED_LEN)
+        if settings_configured:
+            prompt_parts.append(f"\n## SETTINGS\n{settings}")
+
         chars = self.memory.read("CHARACTERS.md")
         chars_configured = bool(chars and len(chars.strip()) > CONFIGURED_LEN)
         if chars_configured:
             prompt_parts.append(f"\n## CHARACTERS\n{chars}")
-        
+
         world = self.memory.read("WORLD.md")
         world_configured = bool(world and len(world.strip()) > CONFIGURED_LEN)
         if world_configured:
@@ -96,7 +101,8 @@ Skills with available="false" need dependencies installed first.
         if missing_critical:
             prompt_parts.append(f"0. **CRITICAL CONFIGURATION NEEDED**: The following files are missing or unconfigured: {', '.join(missing_critical)}.")
             prompt_parts.append("   - Your PRIMARY GOAL is to establish these story elements before writing chapters.")
-            prompt_parts.append("   - Ask the user for input or use the 'story-design' skill to generate them.")
+            prompt_parts.append("   - **USE THE 'story-design' SKILL**: Read the skill file first with `read_file` on 'skills/story-design/SKILL.md', then follow its guidance to create all missing configuration files.")
+            prompt_parts.append("   - The story-design skill will guide you through creating: SETTINGS.md (persona & style), CHARACTERS.md, WORLD.md, and OUTLINE.md.")
             prompt_parts.append("   - Save the configurations using 'write_file'.")
 
         prompt_parts.append("1. Always stay in character as defined in CHARACTERS.md and the tone defined in SETTINGS.md. Do NOT break character or tone under any circumstances.")
