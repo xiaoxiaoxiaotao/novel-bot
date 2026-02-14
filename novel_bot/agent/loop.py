@@ -321,8 +321,66 @@ class AgentLoop:
             logger.error(f"Loop Error: {e}")
             console.print(f"[red]Error:[/red] {e}")
 
+    # Patterns that indicate model tried to use tools but output them as text instead
+    TOOL_CALL_PATTERNS = [
+        # you could add your own tags such as "minimax:tool_call" for minimax model to detect if it outputs tool calls as text,
+        "Using Tool:",
+        "tool_call",
+        "write_file(",
+        "read_file(",
+        "memorize_chapter_event(",
+        "memorize_important_fact(",
+        "list_files(",
+        "append_file(",
+    ]
+
+    def _detect_fake_tool_calls(self, content: str) -> bool:
+        """Detect if model output looks like tool calls but wasn't properly formatted."""
+        if not content:
+            return False
+        content_lower = content.lower()
+        for pattern in self.TOOL_CALL_PATTERNS:
+            if pattern.lower() in content_lower:
+                return True
+        return False
+
     async def _handle_final_response(self, response):
         content = self._clean_content(response.content)
+
+        # Check if model output looks like tool calls but wasn't properly formatted
+        if self._detect_fake_tool_calls(content):
+            logger.warning(f"Detected fake tool call in response: {content[:200]}...")
+
+            # Create a system message to correct the model
+            correction_msg = {
+                "role": "system",
+                "content": (
+                    "IMPORTANT: You just output tool calls as text instead of using the actual tool system. "
+                    "When you want to use a tool, you must NOT output text like 'Using Tool: xxx' or 'minimax:tool_call'. "
+                    "Instead, you should use the tool_calls mechanism provided by the API. "
+                    "Please try again and use the proper tool format."
+                )
+            }
+
+            # Add the incorrect response to history
+            self.history.append({"role": "assistant", "content": content})
+
+            # Build new messages with correction
+            messages = self._build_context_messages()
+            messages.append(correction_msg)
+
+            console.print("[dim]Correcting tool call format...[/dim]")
+
+            # Retry with correction
+            corrected_response = await self.provider.chat(messages, tools=self.tools.schemas)
+
+            # If it still has fake tool calls, just show the content with a warning
+            if self._detect_fake_tool_calls(corrected_response.content or ""):
+                console.print("[yellow]Warning: Model is still not using proper tool format. Showing raw output.[/yellow]")
+
+            await self._handle_final_response(corrected_response)
+            return
+
         if content:
             self.history.append({"role": "assistant", "content": content})
             console.print("\n[bold blue]Agent:[/bold blue]")
