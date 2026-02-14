@@ -265,6 +265,22 @@ class AgentLoop:
                     console.print(f"[cyan]Using Tool: {tool_call.function.name}[/cyan]")
                     result = await self.tools.execute(tool_call)
                     
+                    # Check for repeated errors and inject correction if needed
+                    if "Error: Missing required parameters: content" in result:
+                        # Count recent write_file errors
+                        recent_errors = sum(
+                            1 for msg in self.history[-10:]
+                            if msg.get("role") == "tool" and "Missing required parameters: content" in msg.get("content", "")
+                        )
+                        if recent_errors >= 2:
+                            # Add a system message to correct the behavior
+                            correction = {
+                                "role": "system",
+                                "content": "CRITICAL: You have called write_file multiple times without providing the 'content' parameter. STOP and think: You must provide the COMPLETE text content in the 'content' parameter. Do not call write_file until you have the full content ready."
+                            }
+                            messages.append(correction)
+                            self.history.append(correction)
+                    
                     # Add tool result to history
                     tool_msg = {
                         "role": "tool",
