@@ -28,11 +28,11 @@ def init(
     (target / "drafts").mkdir(exist_ok=True)
     
     defaults = {
-        "SETTINGS.md": "No writing settings have been configured yet.",
-        "CHARACTERS.md": "No characters have been created yet.",
-        "WORLD.md": "No world-building has been done yet.",
-        "STORY_SUMMARY.md": "No chapters have been written yet.",
-        "OUTLINE.md": "No story outline has been created yet.",
+        "SETTINGS.md": "Nothing yet",
+        "CHARACTERS.md": "Nothing yet",
+        "WORLD.md": "Nothing yet",
+        "STORY_SUMMARY.md": "Nothing yet",
+        "OUTLINE.md": "Nothing yet",
     }
 
     for filename, content in defaults.items():

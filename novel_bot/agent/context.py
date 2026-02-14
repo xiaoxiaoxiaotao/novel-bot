@@ -3,6 +3,8 @@ from novel_bot.agent.skills import SkillsLoader
 from loguru import logger
 from rich.console import Console
 
+from novel_bot.config import settings
+
 console = Console()
 
 class ContextBuilder:
@@ -11,8 +13,6 @@ class ContextBuilder:
         self.skills = SkillsLoader(memory_store.workspace)
 
     def build_system_prompt(self) -> str:
-        # Load settings file (combines SOUL, TONE, USER)
-        settings = self.memory.read("SETTINGS.md")
         
         prompt_parts = [
             "# IDENTITY",
@@ -20,19 +20,19 @@ class ContextBuilder:
             "Your goal is to write a cohesive, engaging long-form story based on the user's instructions.",
         ]
 
-        settings_configured = False
-        if settings and "No writing settings have been configured yet" not in settings:
-            prompt_parts.append(f"\n## WRITING SETTINGS\n{settings}")
-            settings_configured = True
+        CONFIGURED_LEN = 20
+
+        settings = self.memory.read("SETTINGS.md")
+        settings_configured = bool(settings and len(settings.strip()) > CONFIGURED_LEN)
 
         # Static Story Context
         chars = self.memory.read("CHARACTERS.md")
-        chars_configured = bool(chars and len(chars.strip()) > 10)
+        chars_configured = bool(chars and len(chars.strip()) > CONFIGURED_LEN)
         if chars_configured:
             prompt_parts.append(f"\n## CHARACTERS\n{chars}")
         
         world = self.memory.read("WORLD.md")
-        world_configured = bool(world and len(world.strip()) > 10)
+        world_configured = bool(world and len(world.strip()) > CONFIGURED_LEN)
         if world_configured:
             prompt_parts.append(f"\n## WORLD SETTING\n{world}")
 
@@ -49,7 +49,7 @@ class ContextBuilder:
 
         # 3. Overall Story Progress (if any manual summary exists)
         summary = self.memory.read("STORY_SUMMARY.md")
-        summary_configured = bool(summary and len(summary.strip()) > 10)
+        summary_configured = bool(summary and len(summary.strip()) > CONFIGURED_LEN)
         if summary_configured:
             prompt_parts.append(f"\n## STORY SO FAR\n{summary}")
 
@@ -75,7 +75,7 @@ Skills with available="false" need dependencies installed first.
 
         # Check for outline
         outline = self.memory.read("OUTLINE.md")
-        outline_configured = bool(outline and len(outline.strip()) > 10)
+        outline_configured = bool(outline and len(outline.strip()) > CONFIGURED_LEN)
         if outline_configured:
             prompt_parts.append(f"\n## STORY OUTLINE\n{outline}")
 
