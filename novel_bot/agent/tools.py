@@ -32,9 +32,9 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filename": {"type": "string", "description": "The path to the file (e.g. 'MEMO.md', 'drafts/ch1.md')"}
+                        "filepath": {"type": "string", "description": "The path to the file (e.g. 'MEMO.md', 'drafts/ch1.md')"}
                     },
-                    "required": ["filename"]
+                    "required": ["filepath"]
                 }
             }
         })
@@ -48,10 +48,10 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filename": {"type": "string", "description": "File path"},
+                        "filepath": {"type": "string", "description": "File path (e.g. 'drafts/chapter_01.md')"},
                         "content": {"type": "string", "description": "Full content to write"}
                     },
-                    "required": ["filename", "content"]
+                    "required": ["filepath", "content"]
                 }
             }
         })
@@ -65,7 +65,7 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                         "pattern": {"type": "string", "description": "Glob pattern (default *.md)"}
+                        "pattern": {"type": "string", "description": "Glob pattern (default *.md)"}
                     }
                 }
             }
@@ -81,10 +81,10 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filename": {"type": "string"},
-                        "content": {"type": "string"}
+                        "filepath": {"type": "string", "description": "The path to the file"},
+                        "content": {"type": "string", "description": "Content to append"}
                     },
-                    "required": ["filename", "content"]
+                    "required": ["filepath", "content"]
                 }
             }
         })
@@ -146,9 +146,8 @@ class ToolRegistry:
             if not args:
                 logger.warning(f"Tool {name} called with empty args")
                 return f"Error: Tool '{name}' requires parameters but received none. Please provide the required arguments."
-            logger.info(f"Executing tool: {name} with args: {args}")
             try:
-                # Validate required parameters
+                # Validate required parameters before execution
                 sig = inspect.signature(self.tools[name])
                 required_params = [
                     p.name for p in sig.parameters.values()
@@ -156,7 +155,9 @@ class ToolRegistry:
                 ]
                 missing = [p for p in required_params if p not in args]
                 if missing:
+                    logger.error(f"Tool {name} called with missing params: {missing}, got args: {args}")
                     return f"Error: Missing required parameters: {', '.join(missing)}"
+                logger.info(f"Executing tool: {name} with args: {args}")
 
                 result = self.tools[name](**args)
                 return str(result)

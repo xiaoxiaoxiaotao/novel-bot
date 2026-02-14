@@ -19,32 +19,32 @@ class MemoryStore:
         return self.workspace / filename
 
     # --- Generic File Operations ---
-    def read(self, filename: str) -> str:
-        path = self._get_path(filename)
+    def read(self, filepath: str) -> str:
+        path = self._get_path(filepath)
         if path.exists():
             content = path.read_bytes()
             # Remove surrogate characters that can't be encoded to UTF-8
             return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return ""
 
-    def write(self, filename: str, content: str):
-        path = self._get_path(filename)
+    def write(self, filepath: str, content: str):
+        path = self._get_path(filepath)
         # Ensure parent directory exists (e.g. for drafts/chapter_01.md)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
-        logger.debug(f"Wrote to {filename}")
-        return f"File {filename} written successfully."
+        logger.debug(f"Wrote to {filepath}")
+        return f"File {filepath} written successfully."
 
     def list_files(self, pattern: str = "*.md") -> list[str]:
-         return [str(f.relative_to(self.workspace)) for f in self.workspace.glob(pattern)]
+        return [str(f.relative_to(self.workspace)) for f in self.workspace.glob(pattern)]
 
-    def append(self, filename: str, content: str):
-        path = self._get_path(filename)
+    def append(self, filepath: str, content: str):
+        path = self._get_path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "a", encoding="utf-8") as f:
             f.write(content + "\n")
-        logger.debug(f"Appended to {filename}")
-        return f"Appended to {filename}."
+        logger.debug(f"Appended to {filepath}")
+        return f"Appended to {filepath}."
 
     # --- Memory Specific Operations ---
 
