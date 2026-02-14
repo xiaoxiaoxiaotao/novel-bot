@@ -17,9 +17,8 @@ console = Console()
 
 class AgentLoop:
     # Maximum messages to keep in active context (to prevent token overflow)
+    # Only user and assistant messages count towards this limit
     MAX_CONTEXT_MESSAGES = 10
-    # Maximum messages to keep in stored history
-    MAX_STORED_HISTORY = 100
 
     def __init__(self):
         self.memory = MemoryStore(settings.workspace_path)
@@ -101,37 +100,108 @@ class AgentLoop:
         return content.encode("utf-8", errors="ignore").decode("utf-8")
 
     def _build_context_messages(self) -> List[Dict]:
-        """Build messages for LLM context, limiting history to prevent token overflow."""
+        """Build messages for LLM context, limiting history to prevent token overflow.
+        
+        Strategy:
+        1. Always include system prompt
+        2. Prioritize essential messages (user, assistant responses)
+        3. Compact non-essential messages (errors, long tool results)
+        4. Include tool calls/results only for recent interactions
+        """
         system_prompt = self._clean_content(self.context.build_system_prompt())
 
         # Always include system prompt
         messages = [{"role": "system", "content": system_prompt}]
 
-        # Add conversation summary if history is long
-        if len(self.history) > self.MAX_CONTEXT_MESSAGES:
-            # Add a summary message about older context
-            older_count = len(self.history) - self.MAX_CONTEXT_MESSAGES
-            summary = f"[Previous {older_count} messages are stored in session memory and not shown here to conserve context space. Key information has been saved to memory files.]"
+        # Separate essential and non-essential messages
+        essential_msgs = [m for m in self.history if self._is_essential_message(m)]
+        
+        # If we have more essential messages than the limit, summarize older ones
+        if len(essential_msgs) > self.MAX_CONTEXT_MESSAGES:
+            # Keep recent essential messages
+            recent_essential = essential_msgs[-self.MAX_CONTEXT_MESSAGES:]
+            older_count = len(essential_msgs) - self.MAX_CONTEXT_MESSAGES
+            summary = f"[Previous {older_count} conversation turns are stored in session memory. Key information has been saved to memory files.]"
             messages.append({"role": "system", "content": summary})
-            # Only include recent messages
-            recent_history = self.history[-self.MAX_CONTEXT_MESSAGES:]
+            
+            # Add recent tool context (last 2 tool interactions) for continuity
+            tool_msgs = [m for m in self.history if m.get("role") == "tool"][-4:]
+            tool_call_msgs = [m for m in self.history if m.get("role") == "assistant" and m.get("tool_calls")][-2:]
+            
+            # Build context with tool calls before their results
+            context_msgs = []
+            for msg in recent_essential:
+                if msg in tool_call_msgs or msg.get("role") in ["user", "assistant"]:
+                    context_msgs.append(self._compact_message_for_context(msg))
+                    
+            # Add corresponding tool results
+            for msg in tool_msgs:
+                # Only add if the corresponding tool_call is in context
+                tool_call_id = msg.get("tool_call_id", "")
+                if any(tc.get("id") == tool_call_id for m in tool_call_msgs for tc in m.get("tool_calls", [])):
+                    context_msgs.append(self._compact_message_for_context(msg))
+                    
+            messages.extend(context_msgs)
         else:
-            recent_history = self.history
+            # Compact all messages but keep them
+            for msg in self.history:
+                messages.append(self._compact_message_for_context(msg))
 
-        messages.extend(recent_history)
         return messages
 
-    def _prune_history(self):
-        """Prune history if it exceeds maximum stored size."""
-        if len(self.history) > self.MAX_STORED_HISTORY:
-            # Keep first message (if system-like) and last N messages
-            self.history = self.history[-self.MAX_STORED_HISTORY:]
-            logger.info(f"History pruned to {self.MAX_STORED_HISTORY} messages")
+    def _is_essential_message(self, msg: Dict) -> bool:
+        """Check if a message is essential for context understanding.
+        
+        Essential messages: user input, assistant responses, tool calls with results
+        Non-essential: error messages, debug info, system summaries
+        """
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+        
+        # User messages are always essential
+        if role == "user":
+            return True
+            
+        # Assistant messages without tool calls are essential (actual responses)
+        if role == "assistant":
+            # If it has tool_calls, it's part of a tool chain - keep it
+            if msg.get("tool_calls"):
+                return True
+            # If it's a text response, keep it
+            if content and not content.startswith("["):
+                return True
+            return False
+            
+        # Tool results - keep them as they contain actual data
+        if role == "tool":
+            # Filter out error messages that are too verbose
+            if content and content.startswith("Error:"):
+                # Keep error but mark as non-essential for context window
+                return False
+            return True
+            
+        return False
+
+    def _compact_message_for_context(self, msg: Dict) -> Dict:
+        """Create a compact version of a message for context window.
+        Preserves essential info while reducing token usage.
+        """
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+
+        # Only compact error messages - keep all other content intact
+        if role == "tool" and content.startswith("Error:"):
+            return {
+                "role": "tool",
+                "tool_call_id": msg.get("tool_call_id", ""),
+                "content": "[Tool execution failed - see memory files for details]"
+            }
+
+        return msg
 
     async def process_turn(self, user_input: str):
-        # 1. Update History
+        # 1. Update History (no pruning - keep complete history in JSON)
         self.history.append({"role": "user", "content": self._clean_content(user_input)})
-        self._prune_history()
 
         # 2. Build Context (limited history for API call)
         messages = self._build_context_messages()
