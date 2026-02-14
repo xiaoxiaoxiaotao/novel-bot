@@ -74,8 +74,8 @@ class AgentLoop:
         console.print(f"Session ID: {self.session_id}")
         
         # Ensure workspace has basic files
-        if not (self.memory.workspace / "SOUL.md").exists():
-            console.print("[yellow]Warning: SOUL.md not found. Run 'init' command first.[/yellow]")
+        if not (self.memory.workspace / "SETTINGS.md").exists():
+            console.print("[yellow]Warning: SETTINGS.md not found. Run 'init' command first.[/yellow]")
 
         while True:
             try:
