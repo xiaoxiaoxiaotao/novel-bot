@@ -187,6 +187,42 @@ class AgentLoop:
                 current_response = await self.provider.chat(messages, tools=self.tools.schemas)
             
             # Final text response
+            if current_response.tool_calls and loop_count >= MAX_LOOPS:
+                # Max loops reached with pending tool calls - add them to history first
+                tool_call_msg = {
+                    "role": "assistant",
+                    "content": current_response.content or "",
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": tc.type,
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments
+                            }
+                        }
+                        for tc in current_response.tool_calls
+                    ]
+                }
+                self.history.append(tool_call_msg)
+                messages.append(tool_call_msg)
+                
+                for tool_call in current_response.tool_calls:
+                    console.print(f"[cyan]Using Tool: {tool_call.function.name}[/cyan]")
+                    result = await self.tools.execute(tool_call)
+                    
+                    tool_msg = {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": self._clean_content(result)
+                    }
+                    self.history.append(tool_msg)
+                    messages.append(tool_msg)
+                
+                # Get final response after executing remaining tools
+                console.print("[dim]Thinking...[/dim]")
+                current_response = await self.provider.chat(messages, tools=None)
+            
             await self._handle_final_response(current_response)
 
         except Exception as e:
