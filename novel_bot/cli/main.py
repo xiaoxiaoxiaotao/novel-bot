@@ -28,11 +28,11 @@ def init(
     (target / "drafts").mkdir(exist_ok=True)
     
     defaults = {
-        "SETTINGS.md": "Nothing yet",
-        "CHARACTERS.md": "Nothing yet",
-        "WORLD.md": "Nothing yet",
-        "STORY_SUMMARY.md": "Nothing yet",
-        "OUTLINE.md": "Nothing yet",
+        "SETTINGS.md": "",
+        "CHARACTERS.md": "",
+        "WORLD.md": "",
+        "STORY_SUMMARY.md": "",
+        "OUTLINE.md": "",
     }
 
     for filename, content in defaults.items():
