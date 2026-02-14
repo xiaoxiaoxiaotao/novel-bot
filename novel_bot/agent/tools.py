@@ -46,12 +46,12 @@ class ToolRegistry:
             "type": "function",
             "function": {
                 "name": "write_file",
-                "description": "Write content to a file. Overwrites if exists.",
+                "description": "Write content to a file. Overwrites if exists. IMPORTANT: You MUST provide the complete 'content' parameter with the full text to write. Do NOT call this tool without content.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "filename": {"type": "string", "description": "The path to the file relative to workspace root. Use format 'drafts/chapter_XX_Your_Title.md' (e.g., 'drafts/chapter_01_The_Beginning.md')"},
-                        "content": {"type": "string", "description": "Full content to write into the file"}
+                        "content": {"type": "string", "description": "REQUIRED: The complete full text content to write into the file. Must not be empty or omitted."}
                     },
                     "required": ["filename", "content"],
                     "additionalProperties": False
@@ -171,6 +171,8 @@ class ToolRegistry:
                 missing = [p for p in required_params if p not in args]
                 if missing:
                     logger.error(f"Tool {name} called with missing params: {missing}, got args: {args}")
+                    if name == "write_file" and "content" in missing:
+                        return f"Error: Missing required parameters: {', '.join(missing)}. You MUST provide the complete 'content' parameter with the full text to write. Do not call write_file without content."
                     return f"Error: Missing required parameters: {', '.join(missing)}"
                 logger.info(f"Executing tool: {name} with args: {args}")
 
