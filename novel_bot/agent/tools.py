@@ -32,10 +32,12 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "The path to the file (e.g. 'MEMO.md', 'drafts/ch1.md')"}
+                        "filepath": {"type": "string", "description": "The relative path to the file from workspace root (e.g., 'story/chapter1.md')"}
                     },
-                    "required": ["filepath"]
-                }
+                    "required": ["filepath"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
 
@@ -48,11 +50,13 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "File path (e.g. 'drafts/chapter_01.md')"},
-                        "content": {"type": "string", "description": "Full content to write"}
+                        "filepath": {"type": "string", "description": "The relative path to the file (e.g., 'drafts/chapter_01.md')"},
+                        "content": {"type": "string", "description": "The full content to write into the file"}
                     },
-                    "required": ["filepath", "content"]
-                }
+                    "required": ["filepath", "content"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
 
@@ -65,9 +69,12 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "pattern": {"type": "string", "description": "Glob pattern (default *.md)"}
-                    }
-                }
+                        "pattern": {"type": "string", "description": "Glob pattern (default: '*.md')"}
+                    },
+                    "required": ["pattern"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
         
@@ -77,15 +84,17 @@ class ToolRegistry:
             "type": "function",
             "function": {
                 "name": "append_file",
-                "description": "Append text to a file.",
+                "description": "Append text to an existing file.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filepath": {"type": "string", "description": "The path to the file"},
-                        "content": {"type": "string", "description": "Content to append"}
+                        "filepath": {"type": "string", "description": "The relative path to the file"},
+                        "content": {"type": "string", "description": "The text content to append to the end of the file"}
                     },
-                    "required": ["filepath", "content"]
-                }
+                    "required": ["filepath", "content"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
         
@@ -99,11 +108,13 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "chapter_title": {"type": "string", "description": "e.g. 'Chapter 03'"},
+                        "chapter_title": {"type": "string", "description": "The title of the chapter (e.g., 'Chapter 03')"},
                         "content": {"type": "string", "description": "Detailed bullet points of plot events, item acquisition, and character status changes."}
                     },
-                    "required": ["chapter_title", "content"]
-                }
+                    "required": ["chapter_title", "content"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
         
@@ -116,10 +127,12 @@ class ToolRegistry:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "content": {"type": "string", "description": "The fact to remember."}
+                        "content": {"type": "string", "description": "The fact to remember (concise bullet point)."}
                     },
-                    "required": ["content"]
-                }
+                    "required": ["content"],
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
 
@@ -132,8 +145,10 @@ class ToolRegistry:
                 "description": "Get current writing progress: latest chapter number, total chapters written, and story completion status.",
                 "parameters": {
                     "type": "object",
-                    "properties": {}
-                }
+                    "properties": {},
+                    "additionalProperties": False
+                },
+                "strict": True
             }
         })
 
