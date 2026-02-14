@@ -5,7 +5,7 @@ import re
 import json
 import shutil
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 import yaml
 from loguru import logger
 
@@ -25,6 +25,7 @@ class SkillsLoader:
     def __init__(self, workspace: Path):
         self.workspace = workspace
         self.skills_dir = SKILLS_DIR
+        self._cache: Dict[str, Tuple[str, float]] = {}  # name -> (content, mtime)
     
     def list_skills(self, filter_unavailable: bool = True) -> List[Dict[str, str]]:
         """
@@ -63,30 +64,44 @@ class SkillsLoader:
             return available
         return skills
 
+    def _find_skill_file(self, name: str) -> Optional[Path]:
+        """Find the skill file path for a given skill name."""
+        if not self.skills_dir.exists():
+            return None
+        for skill_dir in self.skills_dir.iterdir():
+            if skill_dir.is_dir():
+                skill_file = skill_dir / "SKILL.md"
+                if skill_file.exists():
+                    if skill_dir.name == name:
+                        return skill_file
+                    meta = self._get_metadata_from_file(skill_file)
+                    if meta and meta.get("name") == name:
+                        return skill_file
+        return None
+
     def load_skill(self, name: str) -> Optional[str]:
         """
-        Load a skill by name.
+        Load a skill by name. Uses cache to avoid redundant disk I/O.
         """
-        # Search in built-in skills directory
-        if self.skills_dir.exists():
-            for skill_dir in self.skills_dir.iterdir():
-                if skill_dir.is_dir():
-                    skill_file = skill_dir / "SKILL.md"
-                    if skill_file.exists():
-                        # Check dir name first
-                        if skill_dir.name == name:
-                            logger.info(f"Loading skill: {name}")
-                            content = skill_file.read_bytes()
-                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
+        skill_file = self._find_skill_file(name)
+        if not skill_file:
+            logger.warning(f"Skill not found: {name}")
+            return None
 
-                        # Check frontmatter name
-                        meta = self._get_metadata_from_file(skill_file)
-                        if meta and meta.get("name") == name:
-                            logger.info(f"Loading skill: {name}")
-                            content = skill_file.read_bytes()
-                            return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
-        logger.warning(f"Skill not found: {name}")
-        return None
+        mtime = skill_file.stat().st_mtime
+
+        # Check cache
+        if name in self._cache:
+            cached_content, cached_mtime = self._cache[name]
+            if cached_mtime == mtime:
+                return cached_content
+
+        # Load from disk and cache
+        logger.info(f"Loading skill: {name}")
+        content = skill_file.read_bytes()
+        decoded = content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
+        self._cache[name] = (decoded, mtime)
+        return decoded
 
     def load_skills_for_context(self, skill_names: List[str]) -> str:
         """
