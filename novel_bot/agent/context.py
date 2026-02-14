@@ -11,9 +11,8 @@ class ContextBuilder:
         self.skills = SkillsLoader(memory_store.workspace)
 
     def build_system_prompt(self) -> str:
-        # Load core files
-        soul = self.memory.read("SOUL.md")
-        tone = self.memory.read("TONE.md")
+        # Load settings file (combines SOUL, TONE, USER)
+        settings = self.memory.read("SETTINGS.md")
         
         prompt_parts = [
             "# IDENTITY",
@@ -21,11 +20,18 @@ class ContextBuilder:
             "Your goal is to write a cohesive, engaging long-form story based on the user's instructions.",
         ]
 
-        if soul:
-            prompt_parts.append(f"\n## SOUL / PERSONA\n{soul}")
-        
-        if tone:
-            prompt_parts.append(f"\n## WRITING TONE\n{tone}")
+        if settings:
+            prompt_parts.append(f"\n## WRITING SETTINGS\n{settings}")
+        else:
+            # Fallback to legacy files for backward compatibility
+            soul = self.memory.read("SOUL.md")
+            tone = self.memory.read("TONE.md")
+            
+            if soul:
+                prompt_parts.append(f"\n## SOUL / PERSONA\n{soul}")
+            
+            if tone:
+                prompt_parts.append(f"\n## WRITING TONE\n{tone}")
 
         # Static Story Context
         chars = self.memory.read("CHARACTERS.md")
@@ -83,7 +89,7 @@ Skills with available="false" need dependencies installed first.
             prompt_parts.append(f"\n{progress_info}")
 
         prompt_parts.append("\n## INSTRUCTIONS")
-        prompt_parts.append("1. Always stay in character as defined in SOUL.md")
+        prompt_parts.append("1. Always stay in character as defined in SETTINGS.md")
         prompt_parts.append("2. Maintain consistency with CHARACTERS.md, WORLD.md, and OUTLINE.md")
         prompt_parts.append("3. Use the 'read_file' tool to check specific details if unsure.")
         prompt_parts.append("4. **CRITICAL: NEVER output long content directly to the user. ALWAYS use the 'write_file' tool to save content to files.**")
