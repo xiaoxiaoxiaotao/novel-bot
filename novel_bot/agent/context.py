@@ -100,7 +100,7 @@ Skills with available="false" need dependencies installed first.
             prompt_parts.append("   - Your PRIMARY GOAL is to establish these story elements before writing chapters.")
             prompt_parts.append("   - **USE THE 'story-design' SKILL**: Read the skill file first with `read_file` on 'skills/story-design/SKILL.md', then follow its guidance to create all missing configuration files.")
             prompt_parts.append("   - The story-design skill will guide you through creating: SETTINGS.md (persona & style), CHARACTERS.md, WORLD.md, and OUTLINE.md.")
-            prompt_parts.append("   - Save the configurations using 'write_file'.")
+            prompt_parts.append(f"   - **MANDATORY**: Use `write_file` tool to save the configuration. Content must be detailed (>{CONFIGURED_LEN} characters) to be considered configured.")
 
         prompt_parts.append("1. Always stay in character as defined in CHARACTERS.md and the tone defined in SETTINGS.md. Do NOT break character or tone under any circumstances.")
         prompt_parts.append("2. Maintain consistency with CHARACTERS.md, WORLD.md, and OUTLINE.md")
