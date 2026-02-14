@@ -1,5 +1,6 @@
 import os
-from openai import AsyncOpenAI
+import asyncio
+from openai import AsyncOpenAI, APIError, RateLimitError
 from novel_bot.config.settings import settings
 from loguru import logger
 from typing import Any
@@ -14,23 +15,36 @@ class LLMProvider:
             base_url=base_url
         )
         self.model = settings.model_name
+        self.max_retries = 3
+        self.retry_delay = 2  # seconds
         logger.info(f"Initialized LLM Provider with model: {self.model} at {base_url}")
 
     async def chat(self, messages: list[dict], tools: list[dict] = None) -> Any:
-        try:
-            params = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": 0.9,
-            }
-            if tools:
-                params["tools"] = tools
-                params["tool_choice"] = "auto"
+        params = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.9,
+        }
+        if tools:
+            params["tools"] = tools
+            params["tool_choice"] = "auto"
 
-            response = await self.client.chat.completions.create(**params)
-            return response.choices[0].message
-        except Exception as e:
-            logger.error(f"LLM API Error: {e}")
-            raise
+        last_error = None
+        for attempt in range(self.max_retries):
+            try:
+                response = await self.client.chat.completions.create(**params)
+                return response.choices[0].message
+            except (APIError, RateLimitError) as e:
+                last_error = e
+                logger.warning(f"LLM API Error (attempt {attempt + 1}/{self.max_retries}): {e}")
+                if attempt < self.max_retries - 1:
+                    wait_time = self.retry_delay * (2 ** attempt)  # Exponential backoff
+                    logger.info(f"Retrying in {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error(f"LLM API failed after {self.max_retries} attempts")
+            except Exception as e:
+                logger.error(f"Unexpected LLM API Error: {e}")
+                raise
 
-from typing import Any
+        raise last_error
