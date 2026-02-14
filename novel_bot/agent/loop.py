@@ -104,83 +104,105 @@ class AgentLoop:
         
         Strategy:
         1. Always include system prompt
-        2. Prioritize essential messages (user, assistant responses)
-        3. Compact non-essential messages (errors, long tool results)
-        4. Include tool calls/results only for recent interactions
+        2. Keep recent messages (up to MAX_CONTEXT_MESSAGES)
+        3. Ensure tool calls are always paired with results
         """
         system_prompt = self._clean_content(self.context.build_system_prompt())
 
         # Always include system prompt
         messages = [{"role": "system", "content": system_prompt}]
 
-        # Separate essential and non-essential messages
-        essential_msgs = [m for m in self.history if self._is_essential_message(m)]
+        # Prepare messages from history
+        context_msgs = []
         
-        # If we have more essential messages than the limit, summarize older ones
-        if len(essential_msgs) > self.MAX_CONTEXT_MESSAGES:
-            # Keep recent essential messages
-            recent_essential = essential_msgs[-self.MAX_CONTEXT_MESSAGES:]
-            older_count = len(essential_msgs) - self.MAX_CONTEXT_MESSAGES
-            summary = f"[Previous {older_count} conversation turns are stored in session memory. Key information has been saved to memory files.]"
-            messages.append({"role": "system", "content": summary})
+        # If history is too long, we need to truncate
+        # We process from the end to keep the most recent interactions
+        # We need to be careful not to split tool call/result pairs
+        
+        reversed_history = list(reversed(self.history))
+        count = 0
+        
+        truncated = False
+        
+        msgs_to_add = []
+        
+        i = 0
+        while i < len(reversed_history) and count < self.MAX_CONTEXT_MESSAGES:
+            msg = reversed_history[i]
+            role = msg.get("role")
             
-            # Add recent tool context (last 2 tool interactions) for continuity
-            tool_msgs = [m for m in self.history if m.get("role") == "tool"][-4:]
-            tool_call_msgs = [m for m in self.history if m.get("role") == "assistant" and m.get("tool_calls")][-2:]
-            
-            # Build context with tool calls before their results
-            context_msgs = []
-            for msg in recent_essential:
-                if msg in tool_call_msgs or msg.get("role") in ["user", "assistant"]:
-                    context_msgs.append(self._compact_message_for_context(msg))
+            # If it's a tool result, we MUST include the corresponding assistant tool call
+            if role == "tool":
+                # Collect all sequential tool results (search forward in reversed list)
+                tool_results = []
+                while i < len(reversed_history) and reversed_history[i].get("role") == "tool":
+                    tool_results.append(reversed_history[i])
+                    i += 1
+                
+                # Now the next message (in reversed order) MUST be the assistant tool call
+                if i < len(reversed_history) and reversed_history[i].get("role") == "assistant" and reversed_history[i].get("tool_calls"):
+                    assistant_msg = reversed_history[i]
                     
-            # Add corresponding tool results
-            for msg in tool_msgs:
-                # Only add if the corresponding tool_call is in context
-                tool_call_id = msg.get("tool_call_id", "")
-                if any(tc.get("id") == tool_call_id for m in tool_call_msgs for tc in m.get("tool_calls", [])):
-                    context_msgs.append(self._compact_message_for_context(msg))
+                    # Check if adding these messages would exceed the limit
+                    # We need to add: len(tool_results) + 1 (assistant) messages
+                    # But they count as ONE logical interaction
+                    total_new = len(tool_results) + 1
+                    if count + 1 > self.MAX_CONTEXT_MESSAGES:
+                        # Would exceed limit, stop here
+                        truncated = True
+                        break
                     
-            messages.extend(context_msgs)
-        else:
-            # Compact all messages but keep them
-            for msg in self.history:
-                messages.append(self._compact_message_for_context(msg))
+                    # Add execution results first (since we are reversed)
+                    # Note: tool_results are [Latest, Older]. reversed(tool_results) -> [Older, Latest]
+                    # We want to append to msgs_to_add: [Later, Older, Asst] ?
+                    # Let's trace carefully:
+                    # History: Asst -> Tool_Older -> Tool_Newer
+                    # Reversed: Tool_Newer -> Tool_Older -> Asst
+                    # Loop finds Tool_Newer then Tool_Older.
+                    # tool_results = [Tool_Newer, Tool_Older]
+                    # We append to msgs_to_add: [Tool_Newer, Tool_Older]
+                    # Then we append Asst: [Tool_Newer, Tool_Older, Asst]
+                    
+                    # Later we reverse msgs_to_add: [Asst, Tool_Older, Tool_Newer]
+                    # This is correct chronological order!
+                    
+                    for tr in tool_results:
+                         msgs_to_add.append(self._compact_message_for_context(tr))
+                    msgs_to_add.append(self._compact_message_for_context(assistant_msg))
+                    
+                    count += 1 
+                    i += 1
+                else:
+                    # Orphaned tool result? Skip to avoid API error.
+                    pass
+                    
+            elif role == "assistant" and msg.get("tool_calls"):
+                # An assistant message with tool calls, but we didn't see tool results immediately before (in reversed order).
+                # This implies the tool results were missing (e.g. crash before result).
+                # We should SKIP this to avoid "assistant with tool call but no result" error.
+                i += 1
+                
+            else:
+                # Regular user or assistant message
+                msgs_to_add.append(self._compact_message_for_context(msg))
+                count += 1
+                i += 1
+
+        if i < len(reversed_history):
+            truncated = True
+
+        # Restore order
+        context_msgs = list(reversed(msgs_to_add))
+        
+        if truncated:
+             older_count = len(self.history) - len(context_msgs)
+             summary = f"[Previous {older_count} messages omitted. Key information saved to memory.]"
+             # Insert summary after system prompt
+             messages.append({"role": "system", "content": summary})
+             
+        messages.extend(context_msgs)
 
         return messages
-
-    def _is_essential_message(self, msg: Dict) -> bool:
-        """Check if a message is essential for context understanding.
-        
-        Essential messages: user input, assistant responses, tool calls with results
-        Non-essential: error messages, debug info, system summaries
-        """
-        role = msg.get("role", "")
-        content = msg.get("content", "")
-        
-        # User messages are always essential
-        if role == "user":
-            return True
-            
-        # Assistant messages without tool calls are essential (actual responses)
-        if role == "assistant":
-            # If it has tool_calls, it's part of a tool chain - keep it
-            if msg.get("tool_calls"):
-                return True
-            # If it's a text response, keep it
-            if content and not content.startswith("["):
-                return True
-            return False
-            
-        # Tool results - keep them as they contain actual data
-        if role == "tool":
-            # Filter out error messages that are too verbose
-            if content and content.startswith("Error:"):
-                # Keep error but mark as non-essential for context window
-                return False
-            return True
-            
-        return False
 
     def _compact_message_for_context(self, msg: Dict) -> Dict:
         """Create a compact version of a message for context window.
