@@ -77,6 +77,11 @@ Skills with available="false" need dependencies installed first.
         if outline:
             prompt_parts.append(f"\n## STORY OUTLINE\n{outline}")
 
+        # Add progress tracking info
+        progress_info = self.memory.get_writing_progress()
+        if progress_info:
+            prompt_parts.append(f"\n{progress_info}")
+
         prompt_parts.append("\n## INSTRUCTIONS")
         prompt_parts.append("1. Always stay in character as defined in SOUL.md")
         prompt_parts.append("2. Maintain consistency with CHARACTERS.md, WORLD.md, and OUTLINE.md")
@@ -87,10 +92,15 @@ Skills with available="false" need dependencies installed first.
         prompt_parts.append("   - Only confirm to the user that the file has been saved, with a brief summary.")
         prompt_parts.append("5. ALWAYS save your novel chapters in the 'drafts/' directory (e.g., 'drafts/chapter_01.md').")
         prompt_parts.append("6. When a chapter is finished, memorize its DETAILED SUMMARY using 'memorize_chapter_event'.")
-        prompt_parts.append("   - Do NOT save the full text in memory. Save the PLOT POINTS, KEY ITEMS, and CHARACTER CHANGES.")
+        prompt_parts.append("   - Do NOT save the full text in memory. Save the PLOT POINTS, KEY ITEMS, and CHARACTER STATUS CHANGES.")
         prompt_parts.append("7. **CRITICAL LONG-TERM MEMORY**: You MUST maintain 'STORY_SUMMARY.md' as a high-level plot synopsis of the ENTIRE story so far.")
         prompt_parts.append("   - This is different from chapter summaries. It is the single source of truth for the ongoing story arc.")
-        prompt_parts.append("   - Whenever a significant event changes the story's direction, update this file using 'write_file'.")
+        prompt_parts.append("   - **MANDATORY**: After writing ANY chapter, you MUST update STORY_SUMMARY.md using 'write_file' to reflect:")
+        prompt_parts.append("     * Current chapter number and protagonist status")
+        prompt_parts.append("     * Major plot developments from the latest chapter")
+        prompt_parts.append("     * Updated character relationships and power levels")
+        prompt_parts.append("     * Current location and immediate goals")
+        prompt_parts.append("   - DO NOT skip this step. The story summary must always reflect the LATEST written chapter.")
         prompt_parts.append("8. **SMART QUESTION POLICY - MAIN ASK, SECONDARY AUTO**:")
         prompt_parts.append("   - **MUST ASK (Main)**: Story premise/genre, chapter word count, total chapter count, core conflict")
         prompt_parts.append("   - **AUTO-CREATE (Secondary)**: After getting main info, AUTOMATICALLY create detailed outline, characters, world - DO NOT ask for permission")
