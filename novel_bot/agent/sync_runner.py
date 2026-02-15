@@ -73,11 +73,10 @@ class SyncRunner:
         """Build the sync prompt with file checks and progress comparison."""
         prompt_parts = ["# SYNC MODE - Workspace Analysis"]
         prompt_parts.append("You are in SYNC mode. Your task is to analyze the workspace and fix any inconsistencies.")
+        prompt_parts.append("Do NOT read all chapter files unless necessary. Focus on structural integrity.")
         prompt_parts.append("")
 
-        CONFIGURED_LEN = 20
-
-        # Check critical files
+        # 0. Check critical files (Settings, Characters, etc.)
         critical_files = {
             "SETTINGS.md": "Story settings, tone, and style",
             "CHARACTERS.md": "Character definitions and relationships",
@@ -86,8 +85,9 @@ class SyncRunner:
             "STORY_SUMMARY.md": "High-level story progress summary"
         }
 
-        prompt_parts.append("## File Status Check")
+        prompt_parts.append("## 0. Critical File Status Check")
         missing_or_empty = []
+        CONFIGURED_LEN = 20
 
         for filename, description in critical_files.items():
             content = self.memory.read(filename)
@@ -101,15 +101,13 @@ class SyncRunner:
             prompt_parts.append("")
             prompt_parts.append(f"**ACTION REQUIRED**: Create or complete these files: {', '.join(missing_or_empty)}")
             prompt_parts.append("Use write_file to create detailed content for each missing file.")
-
+        
         prompt_parts.append("")
-        prompt_parts.append("## Progress Comparison")
 
-        # Get actual progress
-        progress_info = self.memory.get_writing_progress()
-        prompt_parts.append(progress_info)
-
-        # Check for chapter/memory mismatches
+        # 1. Compare Chapters vs Drafts
+        prompt_parts.append("## 1. Chapter vs Draft Consistency Check")
+        
+        import re
         drafts_dir = self.memory.workspace / "drafts"
         chapters_dir = self.memory.chapters_dir
 
@@ -131,43 +129,53 @@ class SyncRunner:
 
         missing_memories = chapter_nums - memory_nums
         orphan_memories = memory_nums - chapter_nums
+        
+        status_1 = "✓ Consistent"
+        if missing_memories or orphan_memories:
+            status_1 = "✗ Inconsistent"
+
+        prompt_parts.append(f"Status: {status_1}")
 
         if missing_memories:
-            prompt_parts.append("")
-            prompt_parts.append(f"**MISSING CHAPTER MEMORIES**: Chapters {sorted(missing_memories)} have drafts but no memory summaries.")
-            prompt_parts.append("For each missing chapter:")
-            prompt_parts.append("1. Use read_file to read the chapter content from drafts/")
-            prompt_parts.append("2. Use memorize_chapter_event to create a summary")
+            prompt_parts.append(f"- **Thinking Required**: Found drafts without memories: {sorted(missing_memories)}")
+            prompt_parts.append("  Action: You must read these specific draft files and use `memorize_chapter_event` to create summaries.")
 
         if orphan_memories:
-            prompt_parts.append("")
-            prompt_parts.append(f"**ORPHAN MEMORIES**: Chapters {sorted(orphan_memories)} have memories but no draft files.")
+            prompt_parts.append(f"- **Notice**: Found memories without drafts: {sorted(orphan_memories)}")
+            prompt_parts.append("  Action: Check if these are stale or if drafts were deleted.")
+            
+        prompt_parts.append("")
 
-        # Check STORY_SUMMARY.md against actual progress
-        summary = self.memory.read("STORY_SUMMARY.md")
-        latest_chapter = max(chapter_nums) if chapter_nums else 0
+        # 2. Check Progress vs Summary
+        prompt_parts.append("## 2. Story Progress vs Summary Alignment")
+        
+        # Get actual progress
+        progress_info = self.memory.get_writing_progress()
+        prompt_parts.append(f"**Detected Progress**: {progress_info}")
 
-        if latest_chapter > 0:
-            summary_chapter = 0
-            if summary:
-                # Try to find chapter reference in summary
-                matches = re.findall(r'[Cc]hapter\s*(\d+)', summary)
-                if matches:
-                    summary_chapter = max(int(m) for m in matches)
-
-            if summary_chapter < latest_chapter:
-                prompt_parts.append("")
-                prompt_parts.append(f"**STORY_SUMMARY OUTDATED**: Latest written chapter is {latest_chapter}, but summary only references up to chapter {summary_chapter}.")
-                prompt_parts.append("Use write_file to update STORY_SUMMARY.md with current plot progress.")
-
+        # Check STORY_SUMMARY.md
+        summary_content = self.memory.read("STORY_SUMMARY.md")
+        prompt_parts.append("")
+        if summary_content:
+            prompt_parts.append("**Current STORY_SUMMARY.md Content**:")
+            prompt_parts.append("```markdown")
+            prompt_parts.append(summary_content[:2000] + ("\n... (truncated)" if len(summary_content) > 2000 else ""))
+            prompt_parts.append("```")
+        else:
+            prompt_parts.append("**Current STORY_SUMMARY.md**: [EMPTY/MISSING]")
+            
         prompt_parts.append("")
         prompt_parts.append("## Instructions")
-        prompt_parts.append("1. Review the status above")
-        prompt_parts.append("2. Use tools to fix any issues found")
-        prompt_parts.append("3. If chapter memories are missing, read the chapter file first, then call memorize_chapter_event")
-        prompt_parts.append("4. Confirm what actions you took")
+        prompt_parts.append("1. **First**, check '0. Critical File Status Check'. If critical files are missing, use `write_file` to create them.")
+        prompt_parts.append("2. **Next**, address any inconsistencies in '1. Chapter vs Draft Consistency Check'.")
+        prompt_parts.append("   - If memories are missing, read the corresponding draft and generate the memory.")
+        prompt_parts.append("3. **Finally**, compare '2. Story Progress vs Summary Alignment'.")
+        prompt_parts.append("   - If the summary is outdated (e.g., missing recent chapters), rewrite it using `write_file`.")
+        prompt_parts.append("4. Confirm when synchronization is complete.")
 
         return "\n".join(prompt_parts)
+
+
 
     async def run(self):
         """Run sync command: check files, compare progress, and guide LLM to fix gaps."""
@@ -179,84 +187,93 @@ class SyncRunner:
         console.print(f"[dim]Sync Prompt Length: {len(sync_prompt)} chars[/dim]")
         
         # We start with a system message
-        messages = [{"role": "system", "content": sync_prompt}]
-        self.history = list(messages) # Copy to history
+        self.history = [{"role": "system", "content": sync_prompt}]
         self._save_session()
 
-        # One-shot LLM call with tools
         try:
             console.print("[dim]Analyzing workspace...[/dim]")
-            response = await self.provider.chat(messages, tools=self.tools.schemas)
+            
+            # Initial analysis (triggers tool usage based on prompt)
+            await self._process_turn()
 
-            # Handle tool calls if any
-            if response.tool_calls:
-                # Add assistant message
-                assistant_msg = {
-                    "role": "assistant",
-                    "content": response.content or "",
-                    "tool_calls": [
-                        {
-                            "id": tc.id,
-                            "type": tc.type,
-                            "function": {
-                                "name": tc.function.name,
-                                "arguments": tc.function.arguments
-                            }
-                        }
-                        for tc in response.tool_calls
-                    ]
-                }
-                messages.append(assistant_msg)
-                self.history.append(assistant_msg)
+            # Enter interactive loop
+            while True:
+                user_input = await asyncio.to_thread(input, "\nSync > ")
+                if user_input.lower() in ["exit", "quit"]:
+                    self._save_session()
+                    console.print(f"[dim]Session saved: session_{self.session_id}.json[/dim]")
+                    break
+                
+                # Add user input
+                self.history.append({"role": "user", "content": user_input})
                 self._save_session()
 
-                # Execute tools
-                for tool_call in response.tool_calls:
-                    console.print(f"[cyan]Sync Tool: {tool_call.function.name}[/cyan]")
-                    result = await self.tools.execute(tool_call)
+                await self._process_turn()
 
-                    # Add tool result
-                    tool_msg = {
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "content": self._clean_content(result)
-                    }
-                    messages.append(tool_msg)
-                    self.history.append(tool_msg)
-                    self._save_session()
-
-                # Follow up
-                console.print("[dim]Processing results...[/dim]")
-                final_response = await self.provider.chat(messages, tools=self.tools.schemas)
-
-                # Add final response
-                if final_response.content:
-                    final_msg = {
-                        "role": "assistant",
-                        "content": self._clean_content(final_response.content)
-                    }
-                    self.history.append(final_msg)
-                    self._save_session()
-
-                # Display final response
-                if final_response.content:
-                    console.print("\n[bold blue]Sync Result:[/bold blue]")
-                    console.print(Markdown(final_response.content))
-            else:
-                # Direct response
-                if response.content:
-                    assistant_msg = {
-                        "role": "assistant",
-                        "content": self._clean_content(response.content)
-                    }
-                    self.history.append(assistant_msg)
-                    self._save_session()
-                    
-                    console.print("\n[bold blue]Sync Result:[/bold blue]")
-                    console.print(Markdown(response.content))
-
-            console.print(f"[dim]Sync complete. Session saved: session_{self.session_id}.json[/dim]")
-
+        except KeyboardInterrupt:
+            self._save_session()
+            console.print(f"\n[dim]Session saved: session_{self.session_id}.json[/dim]")
         except Exception as e:
             logger.error(f"Sync error: {e}")
             console.print(f"[red]Sync failed:[/red] {e}")
+
+    async def _process_turn(self, depth: int = 0):
+        """Process a conversation turn, handling tool calls recursively."""
+        if depth >= 10:
+            console.print("[red]Max tool recursion depth reached. Stopping execution.[/red]")
+            return
+
+        response = await self.provider.chat(self.history, tools=self.tools.schemas)
+
+        # Handle tool calls if any
+        if response.tool_calls:
+            # Add assistant message with tool calls
+            assistant_msg = {
+                "role": "assistant",
+                "content": response.content or "",
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": tc.type,
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments
+                        }
+                    }
+                    for tc in response.tool_calls
+                ]
+            }
+            self.history.append(assistant_msg)
+            self._save_session()
+
+            # Execute tools
+            for tool_call in response.tool_calls:
+                console.print(f"[cyan]Sync Tool: {tool_call.function.name}[/cyan]")
+                result = await self.tools.execute(tool_call)
+
+                # Add tool result
+                tool_msg = {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": self._clean_content(result)
+                }
+                self.history.append(tool_msg)
+                self._save_session()
+
+            # Recursively process the results (so the model can see tool output and respond/use more tools)
+            # This handles the "continue running" part for multi-step tasks
+            await self._process_turn(depth + 1)
+        else:
+
+            # Final text response
+            if response.content:
+                assistant_msg = {
+                    "role": "assistant",
+                    "content": self._clean_content(response.content)
+                }
+                self.history.append(assistant_msg)
+                self._save_session()
+                
+                console.print("\n[bold blue]Sync Result:[/bold blue]")
+                console.print(Markdown(response.content))
+
