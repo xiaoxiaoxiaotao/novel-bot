@@ -170,8 +170,10 @@ class SyncRunner:
         prompt_parts.append("2. **Next**, address any inconsistencies in '1. Chapter vs Draft Consistency Check'.")
         prompt_parts.append("   - If memories are missing, read the corresponding draft and generate the memory.")
         prompt_parts.append("3. **Finally**, compare '2. Story Progress vs Summary Alignment'.")
-        prompt_parts.append("   - If the summary is outdated (e.g., missing recent chapters), rewrite it using `write_file`.")
+        prompt_parts.append("   - If the summary is outdated, read the **chapter memory files** (`memory/chapters/*.md`) for the new chapters.")
+        prompt_parts.append("   - Use the content from these memory files to update `STORY_SUMMARY.md`. **Do not read the full chapter drafts** unless absolutely necessary.")
         prompt_parts.append("4. Confirm when synchronization is complete.")
+
 
         return "\n".join(prompt_parts)
 
