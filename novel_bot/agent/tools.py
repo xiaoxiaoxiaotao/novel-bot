@@ -154,7 +154,89 @@ class ToolRegistry:
 
     async def execute(self, tool_call: Any) -> str:
         name = tool_call.function.name
-        args = json.loads(tool_call.function.arguments)
+        raw_args = tool_call.function.arguments
+
+        # Handle potential JSON parsing issues with truncated or malformed arguments
+        try:
+            args = json.loads(raw_args)
+        except json.JSONDecodeError as e:
+            # Try to fix common issues: unescaped newlines, trailing content, etc.
+            try:
+                # First, try a more robust approach: parse character by character
+                # to handle unescaped content within strings
+                cleaned = []
+                i = 0
+                in_string = False
+                escape_next = False
+
+                while i < len(raw_args):
+                    char = raw_args[i]
+
+                    if escape_next:
+                        cleaned.append(char)
+                        escape_next = False
+                        i += 1
+                        continue
+
+                    if char == '\\':
+                        # Check if this is escaping a quote or newline
+                        if i + 1 < len(raw_args):
+                            next_char = raw_args[i + 1]
+                            if next_char in '"\\nrtbf':
+                                cleaned.append(char)
+                                escape_next = True
+                            else:
+                                # Backslash not followed by valid escape char - escape it
+                                cleaned.append('\\\\')
+                        else:
+                            cleaned.append('\\\\')
+                        i += 1
+                        continue
+
+                    if char == '"':
+                        in_string = not in_string
+                        cleaned.append(char)
+                        i += 1
+                        continue
+
+                    if in_string:
+                        if char == '\n':
+                            cleaned.append('\\n')
+                        elif char == '\r':
+                            cleaned.append('\\r')
+                        elif char == '\t':
+                            cleaned.append('\\t')
+                        else:
+                            cleaned.append(char)
+                    else:
+                        cleaned.append(char)
+
+                    i += 1
+
+                cleaned_str = ''.join(cleaned)
+
+                # If still in string at end, close it and the JSON object
+                if in_string:
+                    cleaned_str += '"}'
+
+                # Try to find a valid JSON object boundary if we have unclosed braces
+                brace_count = 0
+                for char in cleaned_str:
+                    if char == '{':
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+
+                # Add closing braces if needed
+                while brace_count > 0:
+                    cleaned_str += '}'
+                    brace_count -= 1
+
+                args = json.loads(cleaned_str)
+                logger.warning(f"Fixed malformed JSON arguments for tool {name}")
+            except Exception as fix_error:
+                logger.error(f"Failed to parse tool arguments for {name}: {raw_args[:200]}... Error: {e}, Fix error: {fix_error}")
+                return f"Error: Invalid tool arguments format. Please try again with proper JSON."
 
         if name in self.tools:
             # Check for empty arguments
