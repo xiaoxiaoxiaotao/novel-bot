@@ -100,108 +100,78 @@ class AgentLoop:
         return content.encode("utf-8", errors="ignore").decode("utf-8")
 
     def _build_context_messages(self) -> List[Dict]:
-        """Build messages for LLM context, limiting history to prevent token overflow.
+        """Build messages for LLM context, keeping effective conversation history.
         
         Strategy:
         1. Always include system prompt
-        2. Keep recent messages (up to MAX_CONTEXT_MESSAGES)
-        3. Ensure tool calls are always paired with results
+        2. Keep recent user/assistant messages (up to MAX_CONTEXT_MESSAGES)
+        3. Keep non-write_file tool calls and results (compact form)
+        4. Exclude: write_file tool calls/results (chapter content too large)
         """
         system_prompt = self._clean_content(self.context.build_system_prompt())
-
-        # Always include system prompt
         messages = [{"role": "system", "content": system_prompt}]
 
-        # Prepare messages from history
-        context_msgs = []
+        # Filter and compact history
+        compacted = []
+        skip_next_tools = False
         
-        # If history is too long, we need to truncate
-        # We process from the end to keep the most recent interactions
-        # We need to be careful not to split tool call/result pairs
-        
-        reversed_history = list(reversed(self.history))
-        count = 0
-        
-        truncated = False
-        
-        msgs_to_add = []
-        
-        i = 0
-        while i < len(reversed_history) and count < self.MAX_CONTEXT_MESSAGES:
-            msg = reversed_history[i]
+        for msg in self.history:
             role = msg.get("role")
             
-            # If it's a tool result, we MUST include the corresponding assistant tool call
+            # Skip system messages (corrections, etc.)
+            if role == "system":
+                continue
+                
+            # Skip write_file tool calls and their results
+            if role == "assistant" and msg.get("tool_calls"):
+                # Check if any tool call is write_file
+                is_write_file = any(
+                    tc.get("function", {}).get("name") == "write_file"
+                    for tc in msg.get("tool_calls", [])
+                )
+                if is_write_file:
+                    skip_next_tools = True
+                    continue
+                # Keep other tool calls in compact form
+                compacted.append({
+                    "role": "assistant",
+                    "content": f"[Using tools: {', '.join(tc.get('function', {}).get('name') for tc in msg.get('tool_calls', []))}]"
+                })
+                continue
+                
+            # Skip tool results for write_file
             if role == "tool":
-                # Collect all sequential tool results (search forward in reversed list)
-                tool_results = []
-                while i < len(reversed_history) and reversed_history[i].get("role") == "tool":
-                    tool_results.append(reversed_history[i])
-                    i += 1
-                
-                # Now the next message (in reversed order) MUST be the assistant tool call
-                if i < len(reversed_history) and reversed_history[i].get("role") == "assistant" and reversed_history[i].get("tool_calls"):
-                    assistant_msg = reversed_history[i]
-                    
-                    # Check if adding these messages would exceed the limit
-                    # We need to add: len(tool_results) + 1 (assistant) messages
-                    # But they count as ONE logical interaction
-                    total_new = len(tool_results) + 1
-                    if count + 1 > self.MAX_CONTEXT_MESSAGES:
-                        # Would exceed limit, stop here
-                        truncated = True
-                        break
-                    
-                    # Add execution results first (since we are reversed)
-                    # Note: tool_results are [Latest, Older]. reversed(tool_results) -> [Older, Latest]
-                    # We want to append to msgs_to_add: [Later, Older, Asst] ?
-                    # Let's trace carefully:
-                    # History: Asst -> Tool_Older -> Tool_Newer
-                    # Reversed: Tool_Newer -> Tool_Older -> Asst
-                    # Loop finds Tool_Newer then Tool_Older.
-                    # tool_results = [Tool_Newer, Tool_Older]
-                    # We append to msgs_to_add: [Tool_Newer, Tool_Older]
-                    # Then we append Asst: [Tool_Newer, Tool_Older, Asst]
-                    
-                    # Later we reverse msgs_to_add: [Asst, Tool_Older, Tool_Newer]
-                    # This is correct chronological order!
-                    
-                    for tr in tool_results:
-                         msgs_to_add.append(self._compact_message_for_context(tr))
-                    msgs_to_add.append(self._compact_message_for_context(assistant_msg))
-                    
-                    count += 1 
-                    i += 1
+                if skip_next_tools:
+                    continue
+                # Compact other tool results
+                content = msg.get("content", "")
+                if content.startswith("Error:"):
+                    compacted.append({
+                        "role": "assistant",
+                        "content": "[Tool error occurred]"
+                    })
                 else:
-                    # Orphaned tool result? Skip to avoid API error.
-                    pass
-                    
-            elif role == "assistant" and msg.get("tool_calls"):
-                # An assistant message with tool calls, but we didn't see tool results immediately before (in reversed order).
-                # This implies the tool results were missing (e.g. crash before result).
-                # We should SKIP this to avoid "assistant with tool call but no result" error.
-                i += 1
-                
-            else:
-                # Regular user or assistant message
-                msgs_to_add.append(self._compact_message_for_context(msg))
-                count += 1
-                i += 1
+                    compacted.append({
+                        "role": "assistant", 
+                        "content": "[Tool executed successfully]"
+                    })
+                continue
+            
+            # Reset skip flag when we see a non-tool message
+            skip_next_tools = False
+            
+            # Keep user and plain assistant messages
+            if role in ("user", "assistant"):
+                compacted.append(msg)
 
-        if i < len(reversed_history):
-            truncated = True
-
-        # Restore order
-        context_msgs = list(reversed(msgs_to_add))
+        # Take last MAX_CONTEXT_MESSAGES
+        context_msgs = compacted[-self.MAX_CONTEXT_MESSAGES:]
         
-        if truncated:
-             older_count = len(self.history) - len(context_msgs)
-             summary = f"[Previous {older_count} messages omitted. Key information saved to memory.]"
-             # Insert summary after system prompt
-             messages.append({"role": "system", "content": summary})
-             
-        messages.extend(context_msgs)
+        if len(compacted) > self.MAX_CONTEXT_MESSAGES:
+            summary = f"[Previous {len(compacted) - len(context_msgs)} turns omitted. Key info in memory.]"
+            messages.append({"role": "system", "content": summary})
 
+        messages.extend(context_msgs)
         return messages
 
     def _compact_message_for_context(self, msg: Dict) -> Dict:

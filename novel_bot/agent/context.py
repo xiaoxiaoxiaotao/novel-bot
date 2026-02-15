@@ -86,8 +86,13 @@ Skills with available="false" need dependencies installed first.
         if progress_info:
             prompt_parts.append(f"\n{progress_info}")
 
+        # Check if memory sync is needed
+        memory_sync_reminder = self._get_memory_sync_reminder()
+        if memory_sync_reminder:
+            prompt_parts.append(f"\n{memory_sync_reminder}")
+
         prompt_parts.append("\n## INSTRUCTIONS")
-        
+
         missing_critical = []
         if not settings_configured: missing_critical.append("SETTINGS.md")
         if not chars_configured: missing_critical.append("CHARACTERS.md")
@@ -133,3 +138,48 @@ Skills with available="false" need dependencies installed first.
         prompt_parts.append("9. **Writing Flow**: When user says 'write chapter X', immediately: 1) Read outline, 2) Write chapter, 3) Use 'write_file' tool to save to drafts/, 4) Call memorize_chapter_event, 5) Update STORY_SUMMARY.md - ALL autonomously")
 
         return "\n".join(prompt_parts)
+
+    def _get_memory_sync_reminder(self) -> str:
+        """Check if chapter memories need sync with actual chapters."""
+        import re
+
+        drafts_dir = self.memory.workspace / "drafts"
+        chapters_dir = self.memory.chapters_dir
+
+        # Count chapter files in drafts
+        chapter_count = 0
+        if drafts_dir.exists():
+            chapter_files = list(drafts_dir.glob("chapter_*.md"))
+            for f in chapter_files:
+                match = re.search(r'chapter_(\d+)', f.name)
+                if match:
+                    chapter_count = max(chapter_count, int(match.group(1)))
+
+        # Count memory files
+        memory_count = 0
+        if chapters_dir.exists():
+            memory_files = list(chapters_dir.glob("*.md"))
+            for f in memory_files:
+                match = re.search(r'chapter_(\d+)', f.name)
+                if match:
+                    memory_count = max(memory_count, int(match.group(1)))
+
+        reminders = []
+
+        if chapter_count > memory_count:
+            missing = chapter_count - memory_count
+            reminders.append(
+                f"**MEMORY SYNC NEEDED**: {missing} chapter(s) missing from memory. "
+                f"Call memorize_chapter_event for chapters {memory_count+1}-{chapter_count}."
+            )
+
+        # Also check STORY_SUMMARY.md
+        summary = self.memory.read("STORY_SUMMARY.md")
+        summary_configured = bool(summary and len(summary.strip()) > 100)
+
+        if chapter_count > 0 and not summary_configured:
+            reminders.append(
+                "**STORY_SUMMARY NEEDED**: Update STORY_SUMMARY.md with current plot arc."
+            )
+
+        return "\n".join(reminders) if reminders else ""
