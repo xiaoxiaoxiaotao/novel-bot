@@ -189,5 +189,8 @@ The setting sun slanted through the west window, gilding her silhouette with gol
 
 1. **MUST use write_file tool to save chapters**, do not output full text directly
 2. Self-check word count before saving
-3. Call memorize_chapter_event to record key plot points after saving
+3. **CRITICAL: Call BOTH tools in the SAME response**:
+   - `write_file(filename='drafts/chapter_XX_Title.md', content='完整章节内容...')`
+   - `memorize_chapter_event(chapter_title='Chapter XX: Title', memory_summary='摘要...')`
+   - Both tools are called together, so you have access to the full chapter text when generating the summary
 4. Confirm successful save to user, briefly summarize chapter highlights
