@@ -122,7 +122,7 @@ class AgentLoop:
             if role == "system":
                 continue
                 
-            # Skip write_file tool calls and their results
+            # Handle write_file tool calls - replace with summary instead of skipping
             if role == "assistant" and msg.get("tool_calls"):
                 # Check if any tool call is write_file
                 is_write_file = any(
@@ -131,6 +131,20 @@ class AgentLoop:
                 )
                 if is_write_file:
                     skip_next_tools = True
+                    # Add summary instead of skipping entirely
+                    file_path = "unknown"
+                    for tc in msg.get("tool_calls", []):
+                        if tc.get("function", {}).get("name") == "write_file":
+                            try:
+                                args = json.loads(tc.get("function", {}).get("arguments", "{}"))
+                                file_path = args.get("file_path", "unknown")
+                            except:
+                                pass
+                            break
+                    compacted.append({
+                        "role": "assistant",
+                        "content": f"[Called write_file to save content to: {file_path}]"
+                    })
                     continue
                 # Keep other tool calls in compact form
                 compacted.append({
@@ -138,10 +152,22 @@ class AgentLoop:
                     "content": f"[Using tools: {', '.join(tc.get('function', {}).get('name') for tc in msg.get('tool_calls', []))}]"
                 })
                 continue
-                
-            # Skip tool results for write_file
+
+            # Handle tool results for write_file
             if role == "tool":
                 if skip_next_tools:
+                    # Add summary for write_file result
+                    content = msg.get("content", "")
+                    if content.startswith("Error:"):
+                        compacted.append({
+                            "role": "assistant",
+                            "content": "[write_file failed]"
+                        })
+                    else:
+                        compacted.append({
+                            "role": "assistant",
+                            "content": "[write_file completed successfully]"
+                        })
                     continue
                 # Compact other tool results
                 content = msg.get("content", "")
@@ -152,7 +178,7 @@ class AgentLoop:
                     })
                 else:
                     compacted.append({
-                        "role": "assistant", 
+                        "role": "assistant",
                         "content": "[Tool executed successfully]"
                     })
                 continue
