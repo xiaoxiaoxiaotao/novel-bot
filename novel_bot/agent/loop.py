@@ -122,28 +122,30 @@ class AgentLoop:
             if role == "system":
                 continue
                 
-            # Handle write_file tool calls - replace with summary instead of skipping
+            # Handle write_file and memorize_chapter_event tool calls - replace with summary
             if role == "assistant" and msg.get("tool_calls"):
-                # Check if any tool call is write_file
-                is_write_file = any(
-                    tc.get("function", {}).get("name") == "write_file"
-                    for tc in msg.get("tool_calls", [])
-                )
-                if is_write_file:
+                # Check if any tool call needs content filtering
+                tool_names = [tc.get("function", {}).get("name") for tc in msg.get("tool_calls", [])]
+                is_content_tool = any(name in ("write_file", "memorize_chapter_event") for name in tool_names)
+
+                if is_content_tool:
                     skip_next_tools = True
                     # Add summary instead of skipping entirely
-                    file_path = "unknown"
+                    file_paths = []
                     for tc in msg.get("tool_calls", []):
-                        if tc.get("function", {}).get("name") == "write_file":
+                        tool_name = tc.get("function", {}).get("name")
+                        if tool_name in ("write_file", "memorize_chapter_event"):
                             try:
                                 args = json.loads(tc.get("function", {}).get("arguments", "{}"))
-                                file_path = args.get("file_path", "unknown")
+                                if tool_name == "write_file":
+                                    file_paths.append(args.get("filename", "unknown"))
+                                else:
+                                    file_paths.append(f"memory: {args.get('chapter_title', 'unknown')}")
                             except:
                                 pass
-                            break
                     compacted.append({
                         "role": "assistant",
-                        "content": f"[Called write_file to save content to: {file_path}]"
+                        "content": f"[Saved content to: {', '.join(file_paths)}]"
                     })
                     continue
                 # Keep other tool calls in compact form
