@@ -74,13 +74,16 @@ class MemoryStore:
             return content.decode("utf-8", errors="surrogatepass").encode("utf-8", errors="ignore").decode("utf-8")
         return ""
 
-    def save_chapter_memory(self, chapter_title: str, content: str):
-        """Saves short-term memory for a chapter."""
+    def save_chapter_memory(self, chapter_title: str, memory_summary: str):
+        """Saves a chapter memory summary."""
         safe_name = "".join([c for c in chapter_title if c.isalnum() or c in (' ', '-', '_')]).strip().replace(" ", "_")
-        path = self.chapters_dir / f"{safe_name}.md"
-        path.write_text(content, encoding="utf-8")
+
+        # Save memory summary to memory/chapters/
+        memory_path = self.chapters_dir / f"{safe_name}.md"
+        memory_path.write_text(memory_summary, encoding="utf-8")
         logger.info(f"Saved chapter memory: {safe_name}")
-        return f"Chapter memory for '{chapter_title}' saved."
+
+        return f"Chapter memory for '{chapter_title}' saved successfully."
         
     def get_recent_chapters(self, limit: int = 3) -> str:
         """Get the contents of the most recent chapter memory files."""

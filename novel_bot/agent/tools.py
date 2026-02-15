@@ -104,14 +104,14 @@ class ToolRegistry:
             "type": "function",
             "function": {
                 "name": "memorize_chapter_event",
-                "description": "Save a DETAILED SUMMARY of a chapter to memory. Do NOT save full text.",
+                "description": "Save a chapter memory summary to memory/chapters/. Use this AFTER write_file to record the key events of the chapter.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "chapter_title": {"type": "string", "description": "The title of the chapter. Use format 'Chapter XX: Your Title' (e.g., 'Chapter 03: The Beginning'). This will be saved as 'memory/chapters/chapter_XX_Your_Title.md'."},
-                        "content": {"type": "string", "description": "Detailed bullet points of plot events, item acquisition, and character status changes."}
+                        "chapter_title": {"type": "string", "description": "The title of the chapter. Use format 'Chapter XX: Your Title' (e.g., 'Chapter 03: The Beginning')."},
+                        "memory_summary": {"type": "string", "description": "Detailed bullet points summary of plot events, item acquisition, and character status changes."}
                     },
-                    "required": ["chapter_title", "content"],
+                    "required": ["chapter_title", "memory_summary"],
                     "additionalProperties": False
                 },
                 "strict": True
