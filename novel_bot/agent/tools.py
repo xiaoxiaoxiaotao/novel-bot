@@ -239,10 +239,6 @@ class ToolRegistry:
                 return f"Error: Invalid tool arguments format. Please try again with proper JSON."
 
         if name in self.tools:
-            # Check for empty arguments
-            if not args:
-                logger.warning(f"Tool {name} called with empty args")
-                return f"Error: Tool '{name}' requires parameters but received none. Please provide the required arguments."
             try:
                 # Validate required parameters before execution
                 sig = inspect.signature(self.tools[name])
