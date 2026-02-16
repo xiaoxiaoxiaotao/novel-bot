@@ -44,7 +44,19 @@ class LLMProvider:
                 else:
                     logger.error(f"LLM API failed after {self.max_retries} attempts")
             except Exception as e:
-                logger.error(f"Unexpected LLM API Error: {e}")
-                raise
+                # Handle JSON parsing errors and other unexpected errors from the API
+                error_msg = str(e)
+                if "unexpected end of data" in error_msg or "JSON" in error_msg or "parse" in error_msg.lower():
+                    last_error = e
+                    logger.warning(f"LLM API Response Parse Error (attempt {attempt + 1}/{self.max_retries}): {e}")
+                    if attempt < self.max_retries - 1:
+                        wait_time = self.retry_delay * (2 ** attempt)
+                        logger.info(f"Retrying in {wait_time} seconds...")
+                        await asyncio.sleep(wait_time)
+                    else:
+                        logger.error(f"LLM API failed after {self.max_retries} attempts due to response parsing errors")
+                else:
+                    logger.error(f"Unexpected LLM API Error: {e}")
+                    raise
 
         raise last_error
