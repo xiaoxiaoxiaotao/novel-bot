@@ -307,22 +307,31 @@ class AgentLoop:
             
             while current_response.tool_calls and loop_count < MAX_LOOPS:
                 loop_count += 1
+
+                normalized_tool_calls = []
+                for tc in current_response.tool_calls:
+                    normalized_arguments = tc.function.arguments
+                    try:
+                        parsed_args = self.tools.parse_arguments(tc.function.arguments, tool_name=tc.function.name)
+                        normalized_arguments = json.dumps(parsed_args, ensure_ascii=False)
+                    except Exception as e:
+                        logger.warning(
+                            f"Using raw tool arguments for {tc.function.name} due to parse failure: {e}"
+                        )
+                    normalized_tool_calls.append({
+                        "id": tc.id,
+                        "type": tc.type,
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": normalized_arguments
+                        }
+                    })
                 
                 # Add the assistant's tool call message to history
                 tool_call_msg = {
                     "role": "assistant",
                     "content": current_response.content or "",
-                    "tool_calls": [
-                        {
-                            "id": tc.id,
-                            "type": tc.type,
-                            "function": {
-                                "name": tc.function.name,
-                                "arguments": tc.function.arguments
-                            }
-                        }
-                        for tc in current_response.tool_calls
-                    ]
+                    "tool_calls": normalized_tool_calls
                 }
                 self.history.append(tool_call_msg)
                 messages.append(tool_call_msg)
@@ -331,21 +340,15 @@ class AgentLoop:
                     console.print(f"[cyan]Using Tool: {tool_call.function.name}[/cyan]")
                     result = await self.tools.execute(tool_call)
                     
-                    # Check for repeated errors and inject correction if needed
-                    if "Error: Missing required parameters: content" in result:
-                        # Count recent write_file errors
-                        recent_errors = sum(
-                            1 for msg in self.history[-10:]
-                            if msg.get("role") == "tool" and "Missing required parameters: content" in msg.get("content", "")
-                        )
-                        if recent_errors >= 2:
-                            # Add a system message to correct the behavior
-                            correction = {
-                                "role": "system",
-                                "content": "CRITICAL: You have called write_file multiple times without providing the 'content' parameter. STOP and think: You must provide the COMPLETE text content in the 'content' parameter. Do not call write_file until you have the full content ready."
-                            }
-                            messages.append(correction)
-                            self.history.append(correction)
+                    # Check for write_file content errors and inject correction immediately
+                    if "Error:" in result and "write_file" in result and ("content" in result or "filename" in result):
+                        # Add immediate correction for this specific error
+                        correction = {
+                            "role": "system",
+                            "content": "CRITICAL ERROR: You called write_file but did not provide all required parameters. You MUST provide BOTH 'filename' AND 'content' parameters in a single tool call. The 'content' must contain the COMPLETE text you want to write. Do not call write_file again until you have prepared the full content."
+                        }
+                        messages.append(correction)
+                        self.history.append(correction)
                     
                     # Add tool result to history
                     tool_msg = {
@@ -362,21 +365,30 @@ class AgentLoop:
             
             # Final text response
             if current_response.tool_calls and loop_count >= MAX_LOOPS:
+                normalized_tool_calls = []
+                for tc in current_response.tool_calls:
+                    normalized_arguments = tc.function.arguments
+                    try:
+                        parsed_args = self.tools.parse_arguments(tc.function.arguments, tool_name=tc.function.name)
+                        normalized_arguments = json.dumps(parsed_args, ensure_ascii=False)
+                    except Exception as e:
+                        logger.warning(
+                            f"Using raw tool arguments for {tc.function.name} due to parse failure: {e}"
+                        )
+                    normalized_tool_calls.append({
+                        "id": tc.id,
+                        "type": tc.type,
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": normalized_arguments
+                        }
+                    })
+
                 # Max loops reached with pending tool calls - add them to history first
                 tool_call_msg = {
                     "role": "assistant",
                     "content": current_response.content or "",
-                    "tool_calls": [
-                        {
-                            "id": tc.id,
-                            "type": tc.type,
-                            "function": {
-                                "name": tc.function.name,
-                                "arguments": tc.function.arguments
-                            }
-                        }
-                        for tc in current_response.tool_calls
-                    ]
+                    "tool_calls": normalized_tool_calls
                 }
                 self.history.append(tool_call_msg)
                 messages.append(tool_call_msg)
