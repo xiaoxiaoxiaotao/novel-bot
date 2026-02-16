@@ -1,6 +1,7 @@
-from typing import Callable, Any, Dict, List
+from typing import Callable, Any, Dict, List, Optional
 import json
 import inspect
+import re
 from loguru import logger
 from novel_bot.agent.memory import MemoryStore
 
@@ -46,12 +47,12 @@ class ToolRegistry:
             "type": "function",
             "function": {
                 "name": "write_file",
-                "description": "Write content to a file. Overwrites if exists. IMPORTANT: You MUST provide the complete 'content' parameter with the full text to write. Do NOT call this tool without content.",
+                "description": "Write content to a file. Overwrites if exists. CRITICAL: You MUST provide BOTH parameters: 'filename' (the file path) AND 'content' (the complete text to write). Never call this tool without the 'content' parameter containing the full text.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "filename": {"type": "string", "description": "The path to the file relative to workspace root. Use format 'drafts/chapter_XX_Your_Title.md' (e.g., 'drafts/chapter_01_The_Beginning.md')"},
-                        "content": {"type": "string", "description": "REQUIRED: The complete full text content to write into the file. Must not be empty or omitted."}
+                        "filename": {"type": "string", "description": "The path to the file relative to workspace root. Use format 'drafts/chapter_XX_Your_Title.md' (e.g., 'drafts/chapter_01_The_Beginning.md'). This parameter is REQUIRED."},
+                        "content": {"type": "string", "description": "The complete full text content to write into the file. This parameter is REQUIRED and must contain the actual text content, never empty or null."}
                     },
                     "required": ["filename", "content"],
                     "additionalProperties": False
@@ -155,15 +156,44 @@ class ToolRegistry:
     async def execute(self, tool_call: Any) -> str:
         name = tool_call.function.name
         raw_args = tool_call.function.arguments
-
-        # Handle potential JSON parsing issues with truncated or malformed arguments
         try:
-            args = json.loads(raw_args)
-        except json.JSONDecodeError as e:
-            # Try to fix common issues: unescaped newlines, trailing content, etc.
+            args = self.parse_arguments(raw_args, tool_name=name)
+        except Exception as e:
+            logger.error(f"Failed to parse tool arguments for {name}: {raw_args[:200]}... Error: {e}")
+            return f"Error: Invalid tool arguments format. Please try again with proper JSON."
+
+        if name in self.tools:
             try:
-                # First, try a more robust approach: parse character by character
-                # to handle unescaped content within strings
+                # Validate required parameters before execution
+                sig = inspect.signature(self.tools[name])
+                required_params = [
+                    p.name for p in sig.parameters.values()
+                    if p.default is inspect.Parameter.empty and p.name != 'self'
+                ]
+                missing = [p for p in required_params if p not in args or args[p] is None or args[p] == ""]
+                if missing:
+                    logger.error(f"Tool {name} called with missing params: {missing}, got args: {args}")
+                    if name == "write_file":
+                        if "content" in missing:
+                            return "Error: write_file tool was called without the 'content' parameter. You MUST provide the complete chapter text in the 'content' parameter. Please call write_file again with both 'filename' and 'content' parameters."
+                        elif "filename" in missing:
+                            return "Error: write_file tool was called without the 'filename' parameter. Please provide the file path (e.g., 'drafts/chapter_21.md')."
+                    return f"Error: Missing required parameters: {', '.join(missing)}"
+                logger.info(f"Executing tool: {name} with args: {args}")
+
+                result = self.tools[name](**args)
+                return str(result)
+            except Exception as e:
+                logger.error(f"Tool execution failed: {e}")
+                return f"Error: {e}"
+        return f"Error: Tool {name} not found."
+
+    def parse_arguments(self, raw_args: str, tool_name: str = "unknown") -> Dict:
+        """Parse tool arguments robustly, attempting to repair common JSON issues."""
+        try:
+            return json.loads(raw_args)
+        except json.JSONDecodeError as e:
+            try:
                 cleaned = []
                 i = 0
                 in_string = False
@@ -179,14 +209,12 @@ class ToolRegistry:
                         continue
 
                     if char == '\\':
-                        # Check if this is escaping a quote or newline
                         if i + 1 < len(raw_args):
                             next_char = raw_args[i + 1]
                             if next_char in '"\\nrtbf':
                                 cleaned.append(char)
                                 escape_next = True
                             else:
-                                # Backslash not followed by valid escape char - escape it
                                 cleaned.append('\\\\')
                         else:
                             cleaned.append('\\\\')
@@ -215,11 +243,9 @@ class ToolRegistry:
 
                 cleaned_str = ''.join(cleaned)
 
-                # If still in string at end, close it and the JSON object
                 if in_string:
                     cleaned_str += '"}'
 
-                # Try to find a valid JSON object boundary if we have unclosed braces
                 brace_count = 0
                 for char in cleaned_str:
                     if char == '{':
@@ -227,36 +253,110 @@ class ToolRegistry:
                     elif char == '}':
                         brace_count -= 1
 
-                # Add closing braces if needed
                 while brace_count > 0:
                     cleaned_str += '}'
                     brace_count -= 1
 
-                args = json.loads(cleaned_str)
-                logger.warning(f"Fixed malformed JSON arguments for tool {name}")
+                parsed = json.loads(cleaned_str)
+                logger.warning(f"Fixed malformed JSON arguments for tool {tool_name}")
+                return parsed
             except Exception as fix_error:
-                logger.error(f"Failed to parse tool arguments for {name}: {raw_args[:200]}... Error: {e}, Fix error: {fix_error}")
-                return f"Error: Invalid tool arguments format. Please try again with proper JSON."
+                extracted = self._extract_text_tool_arguments(raw_args, tool_name)
+                if extracted is not None:
+                    logger.warning(f"Recovered malformed arguments with fallback extractor for tool {tool_name}")
+                    return extracted
+                raise ValueError(
+                    f"Invalid tool arguments for {tool_name}: {e}. Fix error: {fix_error}"
+                ) from fix_error
 
-        if name in self.tools:
-            try:
-                # Validate required parameters before execution
-                sig = inspect.signature(self.tools[name])
-                required_params = [
-                    p.name for p in sig.parameters.values()
-                    if p.default is inspect.Parameter.empty and p.name != 'self'
-                ]
-                missing = [p for p in required_params if p not in args]
-                if missing:
-                    logger.error(f"Tool {name} called with missing params: {missing}, got args: {args}")
-                    if name == "write_file" and "content" in missing:
-                        return f"Error: Missing required parameters: {', '.join(missing)}. You MUST provide the complete 'content' parameter with the full text to write. Do not call write_file without content."
-                    return f"Error: Missing required parameters: {', '.join(missing)}"
-                logger.info(f"Executing tool: {name} with args: {args}")
+    def _extract_text_tool_arguments(self, raw_args: str, tool_name: str) -> Optional[Dict]:
+        """Fallback extractor for tools carrying long free-form text payloads."""
+        def extract_key_string(key: str) -> Optional[str]:
+            marker = re.search(rf'"{re.escape(key)}"\s*:\s*"', raw_args)
+            if not marker:
+                return None
 
-                result = self.tools[name](**args)
-                return str(result)
-            except Exception as e:
-                logger.error(f"Tool execution failed: {e}")
-                return f"Error: {e}"
-        return f"Error: Tool {name} not found."
+            index = marker.end()
+            buffer: List[str] = []
+
+            while index < len(raw_args):
+                char = raw_args[index]
+
+                if char == '\\':
+                    if index + 1 < len(raw_args):
+                        buffer.append(char)
+                        buffer.append(raw_args[index + 1])
+                        index += 2
+                        continue
+                    buffer.append(char)
+                    index += 1
+                    continue
+
+                if char == '"':
+                    lookahead = index + 1
+                    while lookahead < len(raw_args) and raw_args[lookahead] in (' ', '\t', '\r', '\n'):
+                        lookahead += 1
+
+                    # Treat as end-of-value only when followed by a structural delimiter.
+                    # Otherwise keep the quote as part of text (common malformed JSON case).
+                    if lookahead >= len(raw_args) or raw_args[lookahead] in (',', '}'):
+                        break
+
+                    buffer.append(char)
+                    index += 1
+                    continue
+
+                buffer.append(char)
+                index += 1
+
+            return self._unescape_text(''.join(buffer), keep_surrounding_whitespace=True)
+
+        if tool_name == "write_file":
+            filename = extract_key_string("filename")
+            content = extract_key_string("content")
+            if filename is not None and content is not None:
+                return {
+                    "filename": self._unescape_text(filename),
+                    "content": content,
+                }
+            return None
+
+        if tool_name == "append_file":
+            filename = extract_key_string("filename")
+            content = extract_key_string("content")
+            if filename is not None and content is not None:
+                return {
+                    "filename": self._unescape_text(filename),
+                    "content": content,
+                }
+            return None
+
+        if tool_name == "memorize_important_fact":
+            content = extract_key_string("content")
+            if content is not None:
+                return {"content": content}
+            return None
+
+        if tool_name == "memorize_chapter_event":
+            chapter_title = extract_key_string("chapter_title")
+            memory_summary = extract_key_string("memory_summary")
+            if chapter_title is not None and memory_summary is not None:
+                return {
+                    "chapter_title": self._unescape_text(chapter_title),
+                    "memory_summary": memory_summary,
+                }
+            return None
+
+        return None
+
+    def _unescape_text(self, value: str, keep_surrounding_whitespace: bool = False) -> str:
+        converted = (
+            value
+            .replace('\\\\', '\\')
+            .replace('\\n', '\n')
+            .replace('\\r', '\r')
+            .replace('\\t', '\t')
+        )
+        if keep_surrounding_whitespace:
+            return converted
+        return converted.strip()
